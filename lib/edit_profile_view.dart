@@ -39,7 +39,7 @@ class _EditProfileViewState extends State<EditProfileView> {
         Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
         _usernameController.text = data['name'];
         _emailController.text = data['email'];
-        // _profileImageUrl = data['profileImageUrl'];
+        _profileImageUrl = data['profileImageUrl'];
       } else {
         debugPrint("Does not exist!");
       }

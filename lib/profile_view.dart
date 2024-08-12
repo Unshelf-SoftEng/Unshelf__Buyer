@@ -28,11 +28,18 @@ class MyApp extends StatelessWidget {
 class ProfileView extends StatelessWidget {
   Future<Map<String, dynamic>> getUserData() async {
     String uid = FirebaseAuth.instance.currentUser!.uid;
-    DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('Users').doc(uid).get();
+    debugPrint("hello??? " + uid);
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
 
+    debugPrint("hello??? 2 " + uid);
     String name = userDoc['name'];
-    String profileImageUrl = await FirebaseStorage.instance.ref(userDoc['profileImageUrl']).getDownloadURL();
-    return {'name': name, 'profileImageUrl': profileImageUrl};
+
+    // debugPrint("hello??? 3 " + userDoc['profileImageUrl']);
+    // final Reference ref = FirebaseStorage.instance.ref(userDoc['profileImageUrl']);
+    // final String url = await ref.getDownloadURL();
+
+    // debugPrint("hello??? 4 " + url);
+    return {'name': name, 'profileImageUrl': userDoc['profileImageUrl']};
   }
 
   @override

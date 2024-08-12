@@ -29,7 +29,7 @@ class _LoginViewState extends State<LoginView> {
         // Redirect to home page
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomeView()),
+          MaterialPageRoute(builder: (context) => ProfileView()),
         );
       } on FirebaseAuthException catch (e) {
         String message;
