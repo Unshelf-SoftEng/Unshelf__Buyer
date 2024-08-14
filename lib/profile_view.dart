@@ -28,17 +28,10 @@ class MyApp extends StatelessWidget {
 class ProfileView extends StatelessWidget {
   Future<Map<String, dynamic>> getUserData() async {
     String uid = FirebaseAuth.instance.currentUser!.uid;
-    debugPrint("hello??? " + uid);
     DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
 
-    debugPrint("hello??? 2 " + uid);
     String name = userDoc['name'];
 
-    // debugPrint("hello??? 3 " + userDoc['profileImageUrl']);
-    // final Reference ref = FirebaseStorage.instance.ref(userDoc['profileImageUrl']);
-    // final String url = await ref.getDownloadURL();
-
-    // debugPrint("hello??? 4 " + url);
     return {'name': name, 'profileImageUrl': userDoc['profileImageUrl']};
   }
 
@@ -132,10 +125,9 @@ class ProfileView extends StatelessWidget {
                 child: BottomNavigationBar(
                   currentIndex: 2,
                   onTap: (index) {
-                    // Handle Bottom Navigation
                     Navigator.push(context, MaterialPageRoute(builder: (_) => HomeView()));
                   },
-                  items: [
+                  items: const [
                     BottomNavigationBarItem(
                       icon: Icon(Icons.home),
                       label: 'Home',

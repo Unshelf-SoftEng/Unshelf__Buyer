@@ -4,6 +4,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unshelf_buyer/base_screen.dart';
+import 'package:unshelf_buyer/product_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: HomeScreen(), 
+      home: HomeScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
@@ -51,10 +52,10 @@ class HomeView extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
           ),
-          child: Row(
+          child: const Row(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                padding: EdgeInsets.symmetric(horizontal: 8.0),
                 child: Icon(
                   Icons.search,
                   color: Color(0xFFA3C38C), // Light green color for the icon
@@ -72,7 +73,7 @@ class HomeView extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: CircleAvatar(
+            icon: const CircleAvatar(
               backgroundColor: Colors.white,
               child: Icon(
                 Icons.shopping_basket,
@@ -84,7 +85,7 @@ class HomeView extends StatelessWidget {
             },
           ),
           IconButton(
-            icon: CircleAvatar(
+            icon: const CircleAvatar(
               backgroundColor: Colors.white,
               child: Icon(
                 Icons.message,
@@ -103,9 +104,31 @@ class HomeView extends StatelessWidget {
             _buildCarouselBanner(),
             _buildCategories(),
             _buildSellingOutSection(),
-            _buildBundleDealsSection(),
+
+            // _buildBundleDealsSection(),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 0,
+        onTap: (index) {
+          // Handle Bottom Navigation
+          Navigator.push(context, MaterialPageRoute(builder: (_) => HomeView()));
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.location_on),
+            label: 'Near Me',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }
@@ -165,9 +188,9 @@ class HomeView extends StatelessWidget {
     return _buildProductCarousel('Selling Out', 'sellingOut');
   }
 
-  Widget _buildBundleDealsSection() {
-    return _buildProductCarousel('Bundle Deals', 'bundleDeals');
-  }
+  // Widget _buildBundleDealsSection() {
+  //   return _buildProductCarousel('Bundle Deals', 'bundleDeals');
+  // }
 
   Widget _buildProductCarousel(String title, String collection) {
     return Column(
@@ -181,7 +204,7 @@ class HomeView extends StatelessWidget {
           ),
         ),
         StreamBuilder<QuerySnapshot>(
-          stream: _firestore.collection('products').where('section', isEqualTo: collection).snapshots(),
+          stream: _firestore.collection('products').snapshots(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
@@ -196,7 +219,8 @@ class HomeView extends StatelessWidget {
               ),
               items: products.map((product) {
                 final data = product.data() as Map<String, dynamic>;
-                return _buildProductCard(data);
+                final productId = product.id;
+                return _buildProductCard(data, productId, context);
               }).toList(),
             );
           },
@@ -205,57 +229,67 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildProductCard(Map<String, dynamic> data) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              CachedNetworkImage(
-                imageUrl: data['mainImageUrl'],
-                height: 100,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-              if (data['discount'] != null)
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: Container(
-                    color: Colors.red,
-                    padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
-                    child: Text(
-                      '${data['discount']}% off',
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
+  Widget _buildProductCard(Map<String, dynamic> data, String productId, BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductPage(productId: productId),
+          ),
+        );
+      },
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                CachedNetworkImage(
+                  imageUrl: data['mainImageUrl'],
+                  height: 100,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+                if (data['discount'] != null)
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Container(
+                      color: Colors.red,
+                      padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
+                      child: Text(
+                        '${data['discount']}% off',
+                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                      ),
                     ),
                   ),
-                ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              data['name'],
-              style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
+              ],
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Text(
-              '₱${data['price']}',
-              style: const TextStyle(fontSize: 14.0, color: Colors.green),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                data['name'],
+                style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              'Ends in: ${_calculateTimeLeft(data['expiryDate'])}',
-              style: const TextStyle(fontSize: 12.0, color: Colors.red),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                '₱${data['price']}',
+                style: const TextStyle(fontSize: 14.0, color: Colors.green),
+              ),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'Ends in: ${_calculateTimeLeft(data['expiryDate'])}',
+                style: const TextStyle(fontSize: 12.0, color: Colors.red),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
