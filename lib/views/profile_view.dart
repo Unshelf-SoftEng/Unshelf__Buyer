@@ -6,6 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:unshelf_buyer/views/home_view.dart';
 import 'package:unshelf_buyer/views/login_view.dart';
+import 'package:unshelf_buyer/views/map_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

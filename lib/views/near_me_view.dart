@@ -1,28 +1,46 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:unshelf_buyer/views/basket_view.dart';
-import 'package:unshelf_buyer/views/bundle_view.dart';
-import 'package:unshelf_buyer/views/category_row_widget.dart';
-import 'package:unshelf_buyer/views/map_view.dart';
-import 'package:unshelf_buyer/views/near_me_view.dart';
 import 'package:unshelf_buyer/views/product_view.dart';
 import 'package:unshelf_buyer/views/profile_view.dart';
 
-class HomeView extends StatelessWidget {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const MyApp());
+}
 
-  HomeView({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: HomeScreen(),
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}
+
+class HomeScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MapView();
+  }
+}
+
+class MapView extends StatelessWidget {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  MapView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF6E9E57),
+        backgroundColor: Color(0xFF6E9E57), // Green color as in the image
         elevation: 0,
         toolbarHeight: 60,
         title: Container(
@@ -37,13 +55,13 @@ class HomeView extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 8.0),
                 child: Icon(
                   Icons.search,
-                  color: Color(0xFFA3C38C),
+                  color: Color(0xFFA3C38C), // Light green color for the icon
                 ),
               ),
               Text(
                 "Search",
                 style: TextStyle(
-                  color: Color(0xFFA3C38C),
+                  color: Color(0xFFA3C38C), // Light green color for the text
                   fontSize: 16,
                 ),
               ),
@@ -60,13 +78,7 @@ class HomeView extends StatelessWidget {
               ),
             ),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => BasketView(),
-                  fullscreenDialog: true,
-                ),
-              );
+              // Handle basket action
             },
           ),
           IconButton(
@@ -78,27 +90,19 @@ class HomeView extends StatelessWidget {
               ),
             ),
             onPressed: () {
-              // Navigator.pushReplacement(
-              //   context,
-              //   MaterialPageRoute(builder: (context) => ChatView()),
-              // );
+              // Handle message action
             },
           ),
         ],
-        bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(4.0),
-            child: Container(
-              color: const Color.fromARGB(255, 200, 221, 150),
-              height: 4.0,
-            )),
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
             _buildCarouselBanner(),
-            CategoryIconsRow(),
+            _buildCategories(),
             _buildSellingOutSection(),
-            _buildBundleDealsSection(),
+
+            // _buildBundleDealsSection(),
           ],
         ),
       ),
@@ -128,7 +132,7 @@ class HomeView extends StatelessWidget {
       case 0:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomeView()),
+          MaterialPageRoute(builder: (context) => MapView()),
         );
         break;
       case 1:
@@ -147,53 +151,31 @@ class HomeView extends StatelessWidget {
   }
 
   Widget _buildCarouselBanner() {
-    return FutureBuilder<List<String>>(
-      future: _getBannerImageUrls(), // Fetch URLs from Firebase Storage
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('No banners available.'));
-        }
-
-        return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: CarouselSlider(
-            options: CarouselOptions(height: 150.0, autoPlay: true),
-            items: snapshot.data!.map((url) {
-              return Builder(
-                builder: (BuildContext context) {
-                  return Container(
-                    width: MediaQuery.of(context).size.width,
-                    margin: const EdgeInsets.symmetric(horizontal: 5.0),
-                    child: CachedNetworkImage(
-                      imageUrl: url,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                      errorWidget: (context, url, error) => const Center(child: Icon(Icons.error)),
-                    ),
-                  );
-                },
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: CarouselSlider(
+        options: CarouselOptions(height: 150.0, autoPlay: true),
+        items: [1, 2, 3, 4, 5].map((i) {
+          return Builder(
+            builder: (BuildContext context) {
+              return Container(
+                width: MediaQuery.of(context).size.width,
+                margin: const EdgeInsets.symmetric(horizontal: 5.0),
+                decoration: const BoxDecoration(
+                  color: Colors.green,
+                ),
+                child: Center(
+                  child: Text(
+                    'Christmas Mega Sale Banner $i',
+                    style: const TextStyle(fontSize: 16.0, color: Colors.white),
+                  ),
+                ),
               );
-            }).toList(),
-          ),
-        );
-      },
+            },
+          );
+        }).toList(),
+      ),
     );
-  }
-
-  Future<List<String>> _getBannerImageUrls() async {
-    try {
-      final ListResult result = await _storage.ref('banner_images').listAll();
-      final List<String> imageUrls = await Future.wait(
-        result.items.map((Reference ref) => ref.getDownloadURL()).toList(),
-      );
-      return imageUrls;
-    } catch (e) {
-      print('Error fetching banner images: $e');
-      return [];
-    }
   }
 
   Widget _buildCategories() {
@@ -223,42 +205,9 @@ class HomeView extends StatelessWidget {
     return _buildProductCarousel('Selling Out', 'sellingOut');
   }
 
-  Widget _buildBundleDealsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Text(
-            "Bundle Deals",
-            style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-          ),
-        ),
-        StreamBuilder<QuerySnapshot>(
-          stream: _firestore.collection('bundles').snapshots(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            final bundles = snapshot.data!.docs;
-
-            return CarouselSlider(
-              options: CarouselOptions(
-                height: 200.0,
-                viewportFraction: 0.5,
-              ),
-              items: bundles.map((bundle) {
-                final data = bundle.data() as Map<String, dynamic>;
-                final bundleId = bundle.id;
-                return _buildProductCard(data, bundleId, true, context);
-              }).toList(),
-            );
-          },
-        ),
-      ],
-    );
-  }
+  // Widget _buildBundleDealsSection() {
+  //   return _buildProductCarousel('Bundle Deals', 'bundleDeals');
+  // }
 
   Widget _buildProductCarousel(String title, String collection) {
     return Column(
@@ -288,7 +237,7 @@ class HomeView extends StatelessWidget {
               items: products.map((product) {
                 final data = product.data() as Map<String, dynamic>;
                 final productId = product.id;
-                return _buildProductCard(data, productId, false, context);
+                return _buildProductCard(data, productId, context);
               }).toList(),
             );
           },
@@ -297,21 +246,18 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildProductCard(Map<String, dynamic> data, String productId, bool isBundle, BuildContext context) {
+  Widget _buildProductCard(Map<String, dynamic> data, String productId, BuildContext context) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => isBundle ? BundleView(bundleId: productId) : ProductPage(productId: productId),
+            builder: (context) => ProductPage(productId: productId),
           ),
         );
       },
       child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15.0),
-          side: const BorderSide(color: Color(0xA7C957), width: 10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -345,46 +291,28 @@ class HomeView extends StatelessWidget {
                 style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
               ),
             ),
-            Text(
-              '  PHP${data['price'].toStringAsFixed(2)}',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                '₱${data['price']}',
+                style: const TextStyle(fontSize: 14.0, color: Colors.green),
+              ),
             ),
-            //   const SizedBox(height: 8),
-            //   LinearProgressIndicator(
-            //     value: timeLeftPercentage,
-            //     backgroundColor: Colors.grey[300],
-            //     color: Colors.green,
-            //   ),
-            //   const SizedBox(height: 4),
-            //   Text(
-            //     'Ends in $timeLeftText',
-            //     style: const TextStyle(color: Colors.red, fontSize: 12),
-            //   ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'Ends in: ${_calculateTimeLeft(data['expiryDate'])}',
+                style: const TextStyle(fontSize: 12.0, color: Colors.red),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  // double _calculateTimeLeftPercentage(Timestamp expiryDate) {
-  //   final DateTime now = DateTime.now();
-  //   final Duration totalDuration = expiryDate.toDate().difference(DateTime.now());
-  //   final Duration remainingDuration = expiryDate.toDate().difference(DateTime.now());
-
-  //   return remainingDuration.inSeconds / totalDuration.inSeconds;
-  // }
-
-  // String _formatTimeLeft(Timestamp expiryDate) {
-  //   final Duration timeLeft = expiryDate.toDate().difference(DateTime.now());
-  //   final int hours = timeLeft.inHours;
-  //   final int minutes = timeLeft.inMinutes % 60;
-  //   final int seconds = timeLeft.inSeconds % 60;
-
-  //   return '$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-  // }
-
-  // String _calculateTimeLeft(Timestamp expiryDate) {
-  //   final timeLeft = expiryDate.toDate().difference(DateTime.now());
-  //   return '${timeLeft.inHours}h ${timeLeft.inMinutes % 60}m';
-  // }
+  String _calculateTimeLeft(Timestamp expiryDate) {
+    final timeLeft = expiryDate.toDate().difference(DateTime.now());
+    return '${timeLeft.inHours}h ${timeLeft.inMinutes % 60}m';
+  }
 }

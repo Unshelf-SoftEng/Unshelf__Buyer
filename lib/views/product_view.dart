@@ -31,7 +31,7 @@ class _ProductPageState extends State<ProductPage> {
 
     var sellerSnapshot = await FirebaseFirestore.instance.collection('stores').doc(productData['sellerId']).get();
     setState(() {
-      sellerData = sellerSnapshot.data() as Map<String, dynamic>?;
+      sellerData = sellerSnapshot.data();
     });
   }
 
@@ -70,9 +70,9 @@ class _ProductPageState extends State<ProductPage> {
                         Navigator.pop(context);
                       },
                       backgroundColor: const Color(0xFF6E9E57),
-                      child: const Icon(Icons.arrow_back, color: Colors.white),
                       mini: true,
                       shape: const CircleBorder(side: BorderSide(color: Colors.white, width: 2.0)),
+                      child: const Icon(Icons.arrow_back, color: Colors.white),
                     ),
                   ),
                   Positioned(
@@ -86,9 +86,9 @@ class _ProductPageState extends State<ProductPage> {
                         );
                       },
                       backgroundColor: const Color(0xFF6E9E57),
-                      child: const Icon(Icons.shopping_cart, color: Colors.white),
                       mini: true,
                       shape: const CircleBorder(side: BorderSide(color: Colors.white, width: 2.0)),
+                      child: const Icon(Icons.shopping_cart, color: Colors.white),
                     ),
                   ),
                 ],
@@ -242,7 +242,7 @@ class _ProductPageState extends State<ProductPage> {
             .doc(user.uid)
             .collection('favorites')
             .doc(productId)
-            .set({'added_at': FieldValue.serverTimestamp()});
+            .set({'added_at': FieldValue.serverTimestamp(), 'is_bundle': false});
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Added to Favorites')),

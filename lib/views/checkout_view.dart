@@ -183,7 +183,7 @@ class _CheckoutViewState extends State<CheckoutView> {
                     'seller_id': widget.sellerId,
                     'status': 'Pending',
                   });
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => OrderPlacedView()));
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => OrderPlacedView()));
                 }
               },
               style: ElevatedButton.styleFrom(

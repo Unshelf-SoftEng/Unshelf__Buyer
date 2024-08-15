@@ -246,10 +246,10 @@ class _BasketViewState extends State<BasketView> {
                           .toList();
 
                       // navigate and send selected items to CheckoutView
-                      Navigator.push(
+                      Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => CheckoutView(basketItems: selectedItems, sellerId: selectedSellerId),
+                          builder: (_) => CheckoutView(basketItems: selectedItems, sellerId: selectedSellerId),
                         ),
                       );
                     },

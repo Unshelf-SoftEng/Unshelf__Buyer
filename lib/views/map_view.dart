@@ -1,318 +1,165 @@
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:unshelf_buyer/views/product_view.dart';
-import 'package:unshelf_buyer/views/profile_view.dart';
+// import 'dart:async';
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:flutter/material.dart';
+// import 'package:geolocator/geolocator.dart';
+// import 'package:google_maps_flutter/google_maps_flutter.dart';
+// import 'package:unshelf_buyer/views/store_view.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(const MyApp());
-}
+// class MapPage extends StatefulWidget {
+//   @override
+//   _MapPageState createState() => _MapPageState();
+// }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+// class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
+//   @override
+//   bool get wantKeepAlive => true;
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: HomeScreen(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
+//   // get instance of auth
+//   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+//   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+//   final Completer<GoogleMapController> _controller = Completer<GoogleMapController>();
+//   LatLng? _currentPosition;
+//   LatLng basePosition = const LatLng(10.30943566786076, 123.88635816441766);
+//   bool _isLoading = true;
 
-class HomeScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MapView();
-  }
-}
+//   @override
+//   void initState() {
+//     super.initState();
+//     getLocation();
+//   }
 
-class MapView extends StatelessWidget {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+//   // get all markers within a certain radius
+//   Future<Set<Marker>> getMarkersWithinRadius(LatLng center, double radius) async {
+//     final Set<Marker> markers = {};
 
-  MapView({super.key});
+//     final QuerySnapshot querySnapshot =
+//         await _firestore.collection('stores').where('latitude', isNotEqualTo: 0).where('longitude', isNotEqualTo: 0).get();
+//     final Marker marker = Marker(
+//       markerId: const MarkerId('your_marker'),
+//       position: center,
+//       infoWindow: const InfoWindow(title: 'You', snippet: 'Your current location'),
+//       onTap: () {},
+//     );
+//     markers.add(marker);
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color(0xFF6E9E57), // Green color as in the image
-        elevation: 0,
-        toolbarHeight: 60,
-        title: Container(
-          height: 40,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: const Row(
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0),
-                child: Icon(
-                  Icons.search,
-                  color: Color(0xFFA3C38C), // Light green color for the icon
-                ),
-              ),
-              Text(
-                "Search",
-                style: TextStyle(
-                  color: Color(0xFFA3C38C), // Light green color for the text
-                  fontSize: 16,
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const CircleAvatar(
-              backgroundColor: Colors.white,
-              child: Icon(
-                Icons.shopping_basket,
-                color: Color(0xFF6E9E57),
-              ),
-            ),
-            onPressed: () {
-              // Handle basket action
-            },
-          ),
-          IconButton(
-            icon: const CircleAvatar(
-              backgroundColor: Colors.white,
-              child: Icon(
-                Icons.message,
-                color: Color(0xFF6E9E57),
-              ),
-            ),
-            onPressed: () {
-              // Handle message action
-            },
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildCarouselBanner(),
-            _buildCategories(),
-            _buildSellingOutSection(),
+//     // loop through all docs and add them to the markers set
+//     for (final QueryDocumentSnapshot doc in querySnapshot.docs) {
+//       final MarkerId markerId = MarkerId(doc.id);
+//       final latitude = (doc.data() as dynamic)?['latitude'];
+//       final longitude = (doc.data() as dynamic)?['longitude'];
 
-            // _buildBundleDealsSection(),
-          ],
-        ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        onTap: (index) => _onItemTapped(context, index),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.location_on),
-            label: 'Near Me',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
-    );
-  }
+//       // only get markers within a certain radius
+//       var _distanceInMeters = await Geolocator.distanceBetween(
+//         latitude,
+//         longitude,
+//         center.latitude,
+//         center.longitude,
+//       );
 
-  void _onItemTapped(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => MapView()),
-        );
-        break;
-      case 1:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => MapView()),
-        );
-        break;
-      case 2:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => ProfileView()),
-        );
-        break;
-    }
-  }
+//       if (_distanceInMeters > 500) {
+//         continue;
+//       } else {
+//         final Marker marker = Marker(
+//           markerId: markerId,
+//           position: LatLng(
+//             latitude,
+//             longitude,
+//           ),
+//           infoWindow: InfoWindow(title: (doc.data() as dynamic)?['loc_start_address'], snippet: ''),
+//           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+//           onTap: () {
+//             Navigator.push(
+//               context,
+//               MaterialPageRoute(
+//                   builder: (context) => StoreView(
+//                         storeId: doc.id,
+//                       )),
+//             );
+//           },
+//         );
 
-  Widget _buildCarouselBanner() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: CarouselSlider(
-        options: CarouselOptions(height: 150.0, autoPlay: true),
-        items: [1, 2, 3, 4, 5].map((i) {
-          return Builder(
-            builder: (BuildContext context) {
-              return Container(
-                width: MediaQuery.of(context).size.width,
-                margin: const EdgeInsets.symmetric(horizontal: 5.0),
-                decoration: const BoxDecoration(
-                  color: Colors.green,
-                ),
-                child: Center(
-                  child: Text(
-                    'Christmas Mega Sale Banner $i',
-                    style: const TextStyle(fontSize: 16.0, color: Colors.white),
-                  ),
-                ),
-              );
-            },
-          );
-        }).toList(),
-      ),
-    );
-  }
+//         markers.add(marker);
+//       }
+//     }
+//     return markers;
+//   }
 
-  Widget _buildCategories() {
-    final categories = ['Offers', 'Grocery', 'Fruits', 'Vegetables', 'Baked Goods', 'Meals'];
+//   // get current location of device
+//   getLocation() async {
+//     LocationPermission permission;
+//     permission = await Geolocator.requestPermission();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: CarouselSlider(
-        options: CarouselOptions(
-          height: 80.0,
-          viewportFraction: 0.3,
-        ),
-        items: categories.map((category) {
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.category, size: 40),
-              Text(category, style: const TextStyle(fontSize: 12)),
-            ],
-          );
-        }).toList(),
-      ),
-    );
-  }
+//     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+//     double lat = position.latitude;
+//     double long = position.longitude;
 
-  Widget _buildSellingOutSection() {
-    return _buildProductCarousel('Selling Out', 'sellingOut');
-  }
+//     LatLng location = LatLng(lat, long);
 
-  // Widget _buildBundleDealsSection() {
-  //   return _buildProductCarousel('Bundle Deals', 'bundleDeals');
-  // }
+//     setState(() {
+//       _currentPosition = location;
+//       _isLoading = false;
+//     });
+//   }
 
-  Widget _buildProductCarousel(String title, String collection) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(
-            title,
-            style: const TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-          ),
-        ),
-        StreamBuilder<QuerySnapshot>(
-          stream: _firestore.collection('products').snapshots(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            final products = snapshot.data!.docs;
-
-            return CarouselSlider(
-              options: CarouselOptions(
-                height: 200.0,
-                viewportFraction: 0.5,
-              ),
-              items: products.map((product) {
-                final data = product.data() as Map<String, dynamic>;
-                final productId = product.id;
-                return _buildProductCard(data, productId, context);
-              }).toList(),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildProductCard(Map<String, dynamic> data, String productId, BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProductPage(productId: productId),
-          ),
-        );
-      },
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              children: [
-                CachedNetworkImage(
-                  imageUrl: data['mainImageUrl'],
-                  height: 100,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-                if (data['discount'] != null)
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Container(
-                      color: Colors.red,
-                      padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
-                      child: Text(
-                        '${data['discount']}% off',
-                        style: const TextStyle(color: Colors.white, fontSize: 12),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                data['name'],
-                style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text(
-                '₱${data['price']}',
-                style: const TextStyle(fontSize: 14.0, color: Colors.green),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Ends in: ${_calculateTimeLeft(data['expiryDate'])}',
-                style: const TextStyle(fontSize: 12.0, color: Colors.red),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _calculateTimeLeft(Timestamp expiryDate) {
-    final timeLeft = expiryDate.toDate().difference(DateTime.now());
-    return '${timeLeft.inHours}h ${timeLeft.inMinutes % 60}m';
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     super.build(context);
+//     return Scaffold(
+//       appBar: PreferredSize(
+//         preferredSize: const Size.fromHeight(70.0),
+//         child: Padding(
+//           padding: const EdgeInsets.only(top: 20.0, left: 10.0),
+//           child: AppBar(
+//             title: const Text("Sellers Near You"),
+//             titleSpacing: 20,
+//             backgroundColor: Colors.white,
+//             shadowColor: Colors.transparent,
+//             titleTextStyle:
+//                 const TextStyle(fontWeight: FontWeight.w800, color: Colors.black, fontSize: 20, fontFamily: 'Montserrat'),
+//           ),
+//         ),
+//       ),
+//       body: _isLoading
+//           ? const Center(
+//               child: CircularProgressIndicator(),
+//             )
+//           : FutureBuilder(
+//               future: getMarkersWithinRadius(_currentPosition!, 500),
+//               builder: (context, snapshot) {
+//                 if (snapshot.hasData) {
+//                   return Padding(
+//                     padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 10.0),
+//                     child: Container(
+//                       height: 600,
+//                       child: GoogleMap(
+//                         mapType: MapType.terrain,
+//                         initialCameraPosition: CameraPosition(
+//                           target: _currentPosition!,
+//                           zoom: 14.0,
+//                         ),
+//                         onMapCreated: (GoogleMapController controller) {
+//                           _controller.complete(controller);
+//                         },
+//                         markers: Set<Marker>.of(snapshot.data!),
+//                         circles: {
+//                           Circle(
+//                             circleId: const CircleId('1'),
+//                             center: _currentPosition!,
+//                             radius: 500,
+//                             strokeWidth: 2,
+//                             strokeColor: Colors.blue,
+//                             fillColor: Colors.blue.withOpacity(0.2),
+//                           )
+//                         },
+//                       ),
+//                     ),
+//                   );
+//                 } else {
+//                   return const Text('Loading...');
+//                 }
+//               },
+//             ),
+//     );
+//   }
+// }
