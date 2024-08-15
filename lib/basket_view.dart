@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:unshelf_buyer/chat_screen.dart';
 import 'package:unshelf_buyer/checkout_view.dart';
 
 class BasketView extends StatefulWidget {
@@ -95,7 +96,7 @@ class _BasketViewState extends State<BasketView> {
         title: const Text(
           "Basket",
           style: TextStyle(
-            color: Colors.white,
+            color: Color.fromARGB(255, 255, 255, 255), // Light green color for the text
           ),
         ),
         actions: [
@@ -108,10 +109,10 @@ class _BasketViewState extends State<BasketView> {
               ),
             ),
             onPressed: () {
-              // Navigator.pushReplacement(
-              //   context,
-              //   MaterialPageRoute(builder: (context) => ChatView()),
-              // );
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => ChatScreen()),
+              );
             },
           ),
         ],
@@ -234,6 +235,23 @@ class _BasketViewState extends State<BasketView> {
       bottomNavigationBar: BottomAppBar(
         child: Row(
           children: [
+            Checkbox(
+              value: selectedProductIds.length == groupedBasketItems.length,
+              onChanged: (value) {
+                setState(() {
+                  if (value == true) {
+                    groupedBasketItems.forEach((sellerId, items) {
+                      items.forEach((item) {
+                        selectedProductIds.add(item['productId']);
+                      });
+                    });
+                  } else {
+                    selectedProductIds.clear();
+                  }
+                  updateTotal();
+                });
+              },
+            ),
             Text("Total: ₱$total"),
             Spacer(),
             ElevatedButton(

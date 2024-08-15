@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unshelf_buyer/basket_view.dart';
 import 'package:unshelf_buyer/category_row_widget.dart';
+import 'package:unshelf_buyer/chat_screen.dart';
 import 'package:unshelf_buyer/map_view.dart';
 import 'package:unshelf_buyer/product_view.dart';
 import 'package:unshelf_buyer/profile_view.dart';
@@ -100,10 +101,10 @@ class HomeView extends StatelessWidget {
               ),
             ),
             onPressed: () {
-              // Navigator.pushReplacement(
-              //   context,
-              //   MaterialPageRoute(builder: (context) => ChatView()),
-              // );
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ChatScreen()),
+              );
             },
           ),
         ],
