@@ -40,13 +40,22 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
               ),
             ),
             onPressed: () {
-              Navigator.pushReplacement(
+              Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => BasketView()),
+                MaterialPageRoute(
+                  builder: (context) => BasketView(),
+                  fullscreenDialog: true,
+                ),
               );
             },
           ),
         ],
+        bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(4.0),
+            child: Container(
+              color: const Color.fromARGB(255, 200, 221, 150),
+              height: 6.0,
+            )),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('stores').orderBy('store_name').snapshots(),

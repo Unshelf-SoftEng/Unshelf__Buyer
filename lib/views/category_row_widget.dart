@@ -4,11 +4,11 @@ import 'package:unshelf_buyer/views/category_view.dart';
 
 class CategoryIconsRow extends StatelessWidget {
   final List<CategoryItem> categories = [
-    CategoryItem('Offers', 'assets/images/category_offers.svg', 'offers'),
-    CategoryItem('Grocery', 'assets/images/category_grocery.svg', 'grocery'),
-    CategoryItem('Fruits', 'assets/images/category_fruits.svg', 'fruits'),
-    CategoryItem('Veggies', 'assets/images/category_vegetables.svg', 'veggies'),
-    CategoryItem('Baked', 'assets/images/category_baked.svg', 'baked'),
+      CategoryItem('Offers', 'assets/images/category_offers.svg', 'offers'),
+      CategoryItem('Grocery', 'assets/images/category_grocery.svg', 'grocery'),
+      CategoryItem('Fruits', 'assets/images/category_fruits.svg', 'fruits'),
+      CategoryItem('Veggies', 'assets/images/category_vegetables.svg', 'veggies'),
+      CategoryItem('Baked', 'assets/images/category_baked.svg', 'baked'),
   ];
 
   @override
@@ -41,10 +41,10 @@ class CategoryIconsRow extends StatelessWidget {
                     child: SvgPicture.asset(category.iconPath),
                   ),
                 ),
-                SizedBox(height: 8.0),
+                const SizedBox(height: 8.0),
                 Text(
                   category.name,
-                  style: TextStyle(fontSize: 14.0, color: Colors.green),
+                  style: const TextStyle(fontSize: 14.0, color: Colors.green),
                 ),
               ],
             ),

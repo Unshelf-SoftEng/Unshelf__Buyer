@@ -37,23 +37,21 @@ class _ChatViewState extends State<ChatView> with AutomaticKeepAliveClientMixin 
     super.build(context);
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+        backgroundColor: const Color(0xFF6E9E57),
+        elevation: 0,
+        toolbarHeight: 60,
+        title: Text(
+          widget.receiverName,
+          style: const TextStyle(
+            color: Colors.white,
+          ),
         ),
-        title: Text(widget.receiverName),
-        toolbarHeight: 80,
-        titleSpacing: 20,
-        backgroundColor: Colors.white,
-        shadowColor: Colors.transparent,
-        titleTextStyle: const TextStyle(
-          fontWeight: FontWeight.w800,
-          color: Colors.black,
-          fontSize: 20,
-          fontFamily: 'Montserrat',
-        ),
+        bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(4.0),
+            child: Container(
+              color: const Color.fromARGB(255, 200, 221, 150),
+              height: 6.0,
+            )),
       ),
       body: Column(
         children: [
@@ -112,7 +110,7 @@ class _ChatViewState extends State<ChatView> with AutomaticKeepAliveClientMixin 
 
   Widget _buildMessageInput() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 50.0),
+      padding: const EdgeInsets.symmetric(horizontal: 1.0),
       child: Row(
         children: [
           Expanded(

@@ -16,10 +16,10 @@ class _EditProfileViewState extends State<EditProfileView> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
   User? _user;
-  TextEditingController _usernameController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
-  TextEditingController _confirmPasswordController = TextEditingController();
-  TextEditingController _emailController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   bool _isLoading = true;
   String? _profileImageUrl;
   File? _imageFile;
@@ -107,18 +107,21 @@ class _EditProfileViewState extends State<EditProfileView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+        backgroundColor: const Color(0xFF6E9E57),
+        elevation: 0,
+        toolbarHeight: 60,
+        title: const Text(
+          "Edit Profile Details",
+          style: TextStyle(
+            color: Colors.white,
+          ),
         ),
-        // actions: [
-        //   IconButton(
-        //     icon: Icon(Icons.check),
-        //     onPressed: _updateProfile,
-        //   ),
-        // ],
+        bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(4.0),
+            child: Container(
+              color: const Color.fromARGB(255, 200, 221, 150),
+              height: 6.0,
+            )),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -129,7 +132,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                   GestureDetector(
                     onTap: _pickImage,
                     child: CircleAvatar(
-                      radius: 50,
+                      radius: 100,
                       backgroundImage: _imageFile != null
                           ? FileImage(_imageFile!)
                           : (_profileImageUrl != null

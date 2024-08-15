@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:unshelf_buyer/views/chat_screen.dart';
 import 'package:unshelf_buyer/views/checkout_view.dart';
 
 class BasketView extends StatefulWidget {
@@ -89,7 +90,7 @@ class _BasketViewState extends State<BasketView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFF6E9E57), // Green color as in the image
+        backgroundColor: const Color(0xFF6E9E57),
         elevation: 0,
         toolbarHeight: 60,
         title: const Text(
@@ -108,13 +109,22 @@ class _BasketViewState extends State<BasketView> {
               ),
             ),
             onPressed: () {
-              // Navigator.pushReplacement(
-              //   context,
-              //   MaterialPageRoute(builder: (context) => ChatView()),
-              // );
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChatScreen(),
+                  fullscreenDialog: true,
+                ),
+              );
             },
           ),
         ],
+        bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(4.0),
+            child: Container(
+              color: const Color.fromARGB(255, 200, 221, 150),
+              height: 6.0,
+            )),
       ),
       body: ListView(
         children: groupedBasketItems.entries.map((entry) {
@@ -133,8 +143,8 @@ class _BasketViewState extends State<BasketView> {
                     CircleAvatar(
                       backgroundImage: NetworkImage(storeImageUrl),
                     ),
-                    SizedBox(width: 10),
-                    Text(storeName, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 10),
+                    Text(storeName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -160,7 +170,7 @@ class _BasketViewState extends State<BasketView> {
                                 selectedSellerId = sellerId;
                               } else {
                                 // Notify user
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                                   content: Text('You can only select products from one store at a time.'),
                                 ));
                               }
@@ -185,18 +195,18 @@ class _BasketViewState extends State<BasketView> {
                           ),
                         ),
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(productName, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                            Text('₱$productPrice', style: TextStyle(color: Colors.grey)),
+                            Text(productName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                            Text('₱$productPrice', style: const TextStyle(color: Colors.grey)),
                             Row(
                               children: [
-                                Text("Qty: "),
+                                const Text("Qty: "),
                                 IconButton(
-                                  icon: Icon(Icons.remove),
+                                  icon: const Icon(Icons.remove),
                                   onPressed: productQuantity > 1
                                       ? () {
                                           setState(() {
@@ -208,7 +218,7 @@ class _BasketViewState extends State<BasketView> {
                                 ),
                                 Text('$productQuantity'),
                                 IconButton(
-                                  icon: Icon(Icons.add),
+                                  icon: const Icon(Icons.add),
                                   onPressed: () {
                                     setState(() {
                                       item['quantity']++;
@@ -222,7 +232,7 @@ class _BasketViewState extends State<BasketView> {
                         ),
                       ),
                       Text('₱${(productPrice * productQuantity).toStringAsFixed(2)}',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
                     ],
                   ),
                 );
@@ -235,7 +245,7 @@ class _BasketViewState extends State<BasketView> {
         child: Row(
           children: [
             Text("Total: ₱$total"),
-            Spacer(),
+            const Spacer(),
             ElevatedButton(
               onPressed: selectedProductIds.isEmpty
                   ? null

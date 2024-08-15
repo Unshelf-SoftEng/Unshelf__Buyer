@@ -82,7 +82,10 @@ class _ProductPageState extends State<ProductPage> {
                       onPressed: () {
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (context) => BasketView()),
+                          MaterialPageRoute(
+                            builder: (context) => BasketView(),
+                            fullscreenDialog: true,
+                          ),
                         );
                       },
                       backgroundColor: const Color(0xFF6E9E57),
@@ -123,7 +126,7 @@ class _ProductPageState extends State<ProductPage> {
                       GestureDetector(
                         onTap: () {
                           if (sellerData != null) {
-                            Navigator.push(
+                            Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => StoreView(storeId: productData['sellerId']),
