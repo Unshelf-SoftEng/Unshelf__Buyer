@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:unshelf_buyer/basket_view.dart';
+import 'package:unshelf_buyer/store_view.dart';
 
 class ProductPage extends StatefulWidget {
   final String productId;
@@ -16,29 +17,27 @@ class ProductPage extends StatefulWidget {
 
 class _ProductPageState extends State<ProductPage> {
   int _quantity = 1;
+  Map<String, dynamic>? sellerData;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchSellerData();
+  }
+
+  Future<void> _fetchSellerData() async {
+    var productSnapshot = await FirebaseFirestore.instance.collection('products').doc(widget.productId).get();
+    var productData = productSnapshot.data() as Map<String, dynamic>;
+
+    var sellerSnapshot = await FirebaseFirestore.instance.collection('stores').doc(productData['sellerId']).get();
+    setState(() {
+      sellerData = sellerSnapshot.data() as Map<String, dynamic>?;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.shopping_cart),
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => BasketView()),
-              );
-            },
-          ),
-        ],
-      ),
       body: FutureBuilder<DocumentSnapshot>(
         future: FirebaseFirestore.instance.collection('products').doc(widget.productId).get(),
         builder: (context, snapshot) {
@@ -48,90 +47,153 @@ class _ProductPageState extends State<ProductPage> {
 
           var productData = snapshot.data!.data() as Map<String, dynamic>;
 
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CachedNetworkImage(
-                  imageUrl: productData['mainImageUrl'],
-                  placeholder: (context, url) => CircularProgressIndicator(),
-                  errorWidget: (context, url, error) => Icon(Icons.error),
-                ),
-                SizedBox(height: 16.0),
-                Text(
-                  productData['name'],
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 8.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'P ${productData['price']}',
-                      style: TextStyle(fontSize: 20, color: Colors.green, fontWeight: FontWeight.bold),
+          return Column(
+            children: [
+              Stack(
+                children: [
+                  // Product image
+                  CachedNetworkImage(
+                    imageUrl: productData['mainImageUrl'],
+                    placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+                    errorWidget: (context, url, error) => Center(child: Icon(Icons.error)),
+                    width: double.infinity,
+                    height: MediaQuery.of(context).size.height * 0.4,
+                    fit: BoxFit.cover,
+                  ),
+
+                  // Floating buttons
+                  Positioned(
+                    top: 40.0,
+                    left: 16.0,
+                    child: FloatingActionButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      backgroundColor: Color(0xFF6E9E57),
+                      child: Icon(Icons.arrow_back, color: Colors.white),
+                      mini: true,
+                      shape: CircleBorder(side: BorderSide(color: Colors.white, width: 2.0)),
                     ),
-                    const Text(
-                      'Distance: 6 km',
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                  Positioned(
+                    top: 40.0,
+                    right: 16.0,
+                    child: FloatingActionButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => BasketView()),
+                        );
+                      },
+                      backgroundColor: Color(0xFF6E9E57),
+                      child: Icon(Icons.shopping_cart, color: Colors.white),
+                      mini: true,
+                      shape: CircleBorder(side: BorderSide(color: Colors.white, width: 2.0)),
                     ),
-                  ],
-                ),
-                SizedBox(height: 8.0),
-                const Row(
-                  children: [
-                    SizedBox(width: 4.0),
-                    Text(
-                      "Julie's BakeShop", // Replace with seller name from Firebase
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16.0),
-                Text(
-                  'Expiration: ${DateFormat('MMMM d, yyyy').format((productData['expiryDate'] as Timestamp).toDate())}',
-                  style: TextStyle(fontSize: 16, color: Colors.green),
-                ),
-                SizedBox(height: 8.0),
-                Text(
-                  'Description',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 8.0),
-                Text(
-                  productData['description'],
-                  style: TextStyle(fontSize: 16),
-                ),
-                SizedBox(height: 8.0),
-                Text(
-                  'Note: Store in room temperature',
-                  style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
-                ),
-                SizedBox(height: 16.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Quantity:', style: TextStyle(fontSize: 18)),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.remove),
-                          onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
+                  ),
+                ],
+              ),
+
+              // Product Details
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        productData['name'],
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 8.0),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'P ${productData['price']}',
+                            style: TextStyle(fontSize: 20, color: Colors.green, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            'Distance: 6 km', // Modify or calculate dynamically if needed
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8.0),
+                      GestureDetector(
+                        onTap: () {
+                          if (sellerData != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => StoreView(storeId: productData['sellerId']),
+                              ),
+                            );
+                          }
+                        },
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundImage:
+                                  sellerData != null ? CachedNetworkImageProvider(sellerData!['store_image_url']) : null,
+                              radius: 20,
+                            ),
+                            SizedBox(width: 8.0),
+                            Text(
+                              sellerData != null ? sellerData!['store_name'] : 'Loading...',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ],
                         ),
-                        Text(
-                          _quantity.toString(),
-                          style: TextStyle(fontSize: 18),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.add),
-                          onPressed: () => setState(() => _quantity++),
-                        ),
-                      ],
-                    ),
-                  ],
+                      ),
+                      SizedBox(height: 16.0),
+                      Text(
+                        'Expiration: ${DateFormat('MMMM d, yyyy').format((productData['expiryDate'] as Timestamp).toDate())}',
+                        style: TextStyle(fontSize: 16, color: Colors.green),
+                      ),
+                      SizedBox(height: 8.0),
+                      Text(
+                        'Description',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 8.0),
+                      Text(
+                        productData['description'],
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      SizedBox(height: 8.0),
+                      Text(
+                        'Note: Store in room temperature',
+                        style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+                      ),
+                      SizedBox(height: 16.0),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Quantity:', style: TextStyle(fontSize: 18)),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.remove),
+                                onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
+                              ),
+                              Text(
+                                _quantity.toString(),
+                                style: TextStyle(fontSize: 18),
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.add),
+                                onPressed: () => setState(() => _quantity++),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),

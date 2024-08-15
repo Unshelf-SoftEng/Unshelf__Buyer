@@ -164,6 +164,7 @@ class _CheckoutViewState extends State<CheckoutView> {
       bottomNavigationBar: BottomAppBar(
         child: Row(
           children: [
+            Spacer(),
             Text("Total: ₱$totalAmount", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             Spacer(),
             ElevatedButton(
@@ -186,14 +187,20 @@ class _CheckoutViewState extends State<CheckoutView> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
+                backgroundColor: Color.fromARGB(255, 106, 153, 78),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
               child: const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                child: Text("CONFIRM", style: TextStyle(fontSize: 16)),
+                child: Text(
+                  "CONFIRM",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
           ],

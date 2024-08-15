@@ -95,7 +95,7 @@ class _BasketViewState extends State<BasketView> {
         title: const Text(
           "Basket",
           style: TextStyle(
-            color: Color.fromARGB(255, 255, 255, 255), // Light green color for the text
+            color: Colors.white,
           ),
         ),
         actions: [
@@ -234,23 +234,6 @@ class _BasketViewState extends State<BasketView> {
       bottomNavigationBar: BottomAppBar(
         child: Row(
           children: [
-            Checkbox(
-              value: selectedProductIds.length == groupedBasketItems.length,
-              onChanged: (value) {
-                setState(() {
-                  if (value == true) {
-                    groupedBasketItems.forEach((sellerId, items) {
-                      items.forEach((item) {
-                        selectedProductIds.add(item['productId']);
-                      });
-                    });
-                  } else {
-                    selectedProductIds.clear();
-                  }
-                  updateTotal();
-                });
-              },
-            ),
             Text("Total: ₱$total"),
             Spacer(),
             ElevatedButton(

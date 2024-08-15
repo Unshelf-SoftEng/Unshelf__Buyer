@@ -31,9 +31,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Unshelf',
       theme: ThemeData(
+        appBarTheme: const AppBarTheme(iconTheme: IconThemeData(color: Colors.white)),
         colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFF386641)),
         useMaterial3: true,
-        textTheme: GoogleFonts.jostTextTheme(Theme.of(context).textTheme),
+        textTheme:
+            GoogleFonts.jostTextTheme(Theme.of(context).textTheme).apply(bodyColor: const Color.fromARGB(255, 56, 102, 65)),
       ),
       home: FirebaseAuth.instance.currentUser != null ? HomeView() : LoginView(),
     );

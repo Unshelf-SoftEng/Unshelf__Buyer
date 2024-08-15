@@ -126,7 +126,12 @@ class ProfileView extends StatelessWidget {
                 child: BottomNavigationBar(
                   currentIndex: 2,
                   onTap: (index) {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => HomeView()));
+                    Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => HomeView(),
+                          fullscreenDialog: true,
+                        ));
                   },
                   items: const [
                     BottomNavigationBarItem(
@@ -181,10 +186,16 @@ class ProfileView extends StatelessWidget {
             break;
           case 12:
             FirebaseAuth.instance.signOut();
-            Navigator.push(context, MaterialPageRoute(builder: (_) => LoginView()));
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => LoginView(),
+                fullscreenDialog: true,
+              ),
+            );
             break;
           default:
-            Navigator.push(context, MaterialPageRoute(builder: (_) => HomeView()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => HomeView()));
             break;
         }
       },

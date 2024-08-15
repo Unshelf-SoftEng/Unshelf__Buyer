@@ -4,6 +4,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unshelf_buyer/basket_view.dart';
+import 'package:unshelf_buyer/category_row_widget.dart';
 import 'package:unshelf_buyer/map_view.dart';
 import 'package:unshelf_buyer/product_view.dart';
 import 'package:unshelf_buyer/profile_view.dart';
@@ -35,6 +36,7 @@ class HomeScreen extends StatelessWidget {
 
 class HomeView extends StatelessWidget {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final List<String> categoryList = ['Grocery', 'Fruits', 'Vegetables', 'Baked Goods', 'Meals'];
 
   HomeView({super.key});
 
@@ -42,7 +44,7 @@ class HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFF6E9E57), // Green color as in the image
+        backgroundColor: Color(0xFF6E9E57),
         elevation: 0,
         toolbarHeight: 60,
         title: Container(
@@ -57,13 +59,13 @@ class HomeView extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 8.0),
                 child: Icon(
                   Icons.search,
-                  color: Color(0xFFA3C38C), // Light green color for the icon
+                  color: Color(0xFFA3C38C),
                 ),
               ),
               Text(
                 "Search",
                 style: TextStyle(
-                  color: Color(0xFFA3C38C), // Light green color for the text
+                  color: Color(0xFFA3C38C),
                   fontSize: 16,
                 ),
               ),
@@ -80,9 +82,12 @@ class HomeView extends StatelessWidget {
               ),
             ),
             onPressed: () {
-              Navigator.pushReplacement(
+              Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => BasketView()),
+                MaterialPageRoute(
+                  builder: (context) => BasketView(),
+                  fullscreenDialog: true,
+                ),
               );
             },
           ),
@@ -102,14 +107,19 @@ class HomeView extends StatelessWidget {
             },
           ),
         ],
+        bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(4.0),
+            child: Container(
+              color: Color.fromARGB(255, 200, 221, 150),
+              height: 4.0,
+            )),
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
             _buildCarouselBanner(),
-            _buildCategories(),
+            CategoryIconsRow(),
             _buildSellingOutSection(),
-
             // _buildBundleDealsSection(),
           ],
         ),
