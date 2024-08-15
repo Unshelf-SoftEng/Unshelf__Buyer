@@ -1,165 +1,232 @@
-// import 'dart:async';
-// import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:flutter/material.dart';
-// import 'package:geolocator/geolocator.dart';
-// import 'package:google_maps_flutter/google_maps_flutter.dart';
-// import 'package:unshelf_buyer/views/store_view.dart';
+import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:unshelf_buyer/views/home_view.dart';
+import 'package:unshelf_buyer/views/profile_view.dart';
+import 'package:unshelf_buyer/views/store_view.dart';
 
-// class MapPage extends StatefulWidget {
-//   @override
-//   _MapPageState createState() => _MapPageState();
-// }
+class MapPage extends StatefulWidget {
+  @override
+  _MapPageState createState() => _MapPageState();
+}
 
-// class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
-//   @override
-//   bool get wantKeepAlive => true;
+class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<MapPage> {
+  @override
+  bool get wantKeepAlive => true;
 
-//   // get instance of auth
-//   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-//   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-//   final Completer<GoogleMapController> _controller = Completer<GoogleMapController>();
-//   LatLng? _currentPosition;
-//   LatLng basePosition = const LatLng(10.30943566786076, 123.88635816441766);
-//   bool _isLoading = true;
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final Completer<GoogleMapController> _controller = Completer<GoogleMapController>();
+  LatLng? _currentPosition;
+  LatLng basePosition = const LatLng(10.30943566786076, 123.88635816441766);
+  bool _isLoading = true;
+  bool _locationError = false;
 
-//   @override
-//   void initState() {
-//     super.initState();
-//     getLocation();
-//   }
+  @override
+  void initState() {
+    super.initState();
+    _getLocation();
+  }
 
-//   // get all markers within a certain radius
-//   Future<Set<Marker>> getMarkersWithinRadius(LatLng center, double radius) async {
-//     final Set<Marker> markers = {};
+  Future<Set<Marker>> _getMarkersWithinRadius(LatLng center, double radius) async {
+    final Set<Marker> markers = {};
 
-//     final QuerySnapshot querySnapshot =
-//         await _firestore.collection('stores').where('latitude', isNotEqualTo: 0).where('longitude', isNotEqualTo: 0).get();
-//     final Marker marker = Marker(
-//       markerId: const MarkerId('your_marker'),
-//       position: center,
-//       infoWindow: const InfoWindow(title: 'You', snippet: 'Your current location'),
-//       onTap: () {},
-//     );
-//     markers.add(marker);
+    try {
+      // Fetch all documents
+      final QuerySnapshot querySnapshot = await _firestore.collection('stores').get();
 
-//     // loop through all docs and add them to the markers set
-//     for (final QueryDocumentSnapshot doc in querySnapshot.docs) {
-//       final MarkerId markerId = MarkerId(doc.id);
-//       final latitude = (doc.data() as dynamic)?['latitude'];
-//       final longitude = (doc.data() as dynamic)?['longitude'];
+      final Marker marker = Marker(
+        markerId: const MarkerId('your_marker'),
+        position: center,
+        infoWindow: const InfoWindow(title: 'You', snippet: 'Your current location'),
+        onTap: () {},
+      );
+      markers.add(marker);
 
-//       // only get markers within a certain radius
-//       var _distanceInMeters = await Geolocator.distanceBetween(
-//         latitude,
-//         longitude,
-//         center.latitude,
-//         center.longitude,
-//       );
+      for (final QueryDocumentSnapshot doc in querySnapshot.docs) {
+        final latitude = (doc.data() as dynamic)['latitude'];
+        final longitude = (doc.data() as dynamic)['longitude'];
 
-//       if (_distanceInMeters > 500) {
-//         continue;
-//       } else {
-//         final Marker marker = Marker(
-//           markerId: markerId,
-//           position: LatLng(
-//             latitude,
-//             longitude,
-//           ),
-//           infoWindow: InfoWindow(title: (doc.data() as dynamic)?['loc_start_address'], snippet: ''),
-//           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-//           onTap: () {
-//             Navigator.push(
-//               context,
-//               MaterialPageRoute(
-//                   builder: (context) => StoreView(
-//                         storeId: doc.id,
-//                       )),
-//             );
-//           },
-//         );
+        // Filter out invalid coordinates manually
+        if (latitude == 0 || longitude == 0) {
+          continue;
+        }
 
-//         markers.add(marker);
-//       }
-//     }
-//     return markers;
-//   }
+        var distanceInMeters = await Geolocator.distanceBetween(
+          latitude,
+          longitude,
+          center.latitude,
+          center.longitude,
+        );
 
-//   // get current location of device
-//   getLocation() async {
-//     LocationPermission permission;
-//     permission = await Geolocator.requestPermission();
+        if (distanceInMeters <= 500) {
+          final MarkerId markerId = MarkerId(doc.id);
+          final Marker marker = Marker(
+            markerId: markerId,
+            position: LatLng(latitude, longitude),
+            infoWindow: InfoWindow(title: (doc.data() as dynamic)['loc_start_address'], snippet: ''),
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => StoreView(
+                          storeId: doc.id,
+                        )),
+              );
+            },
+          );
 
-//     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-//     double lat = position.latitude;
-//     double long = position.longitude;
+          markers.add(marker);
+        }
+      }
+    } catch (e) {
+      print('Error fetching markers: $e');
+    }
+    return markers;
+  }
 
-//     LatLng location = LatLng(lat, long);
+  Future<void> _getLocation() async {
+    try {
+      LocationPermission permission = await Geolocator.requestPermission();
 
-//     setState(() {
-//       _currentPosition = location;
-//       _isLoading = false;
-//     });
-//   }
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+        setState(() {
+          _locationError = true;
+          _isLoading = false;
+        });
+        return;
+      }
 
-//   @override
-//   Widget build(BuildContext context) {
-//     super.build(context);
-//     return Scaffold(
-//       appBar: PreferredSize(
-//         preferredSize: const Size.fromHeight(70.0),
-//         child: Padding(
-//           padding: const EdgeInsets.only(top: 20.0, left: 10.0),
-//           child: AppBar(
-//             title: const Text("Sellers Near You"),
-//             titleSpacing: 20,
-//             backgroundColor: Colors.white,
-//             shadowColor: Colors.transparent,
-//             titleTextStyle:
-//                 const TextStyle(fontWeight: FontWeight.w800, color: Colors.black, fontSize: 20, fontFamily: 'Montserrat'),
-//           ),
-//         ),
-//       ),
-//       body: _isLoading
-//           ? const Center(
-//               child: CircularProgressIndicator(),
-//             )
-//           : FutureBuilder(
-//               future: getMarkersWithinRadius(_currentPosition!, 500),
-//               builder: (context, snapshot) {
-//                 if (snapshot.hasData) {
-//                   return Padding(
-//                     padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 10.0),
-//                     child: Container(
-//                       height: 600,
-//                       child: GoogleMap(
-//                         mapType: MapType.terrain,
-//                         initialCameraPosition: CameraPosition(
-//                           target: _currentPosition!,
-//                           zoom: 14.0,
-//                         ),
-//                         onMapCreated: (GoogleMapController controller) {
-//                           _controller.complete(controller);
-//                         },
-//                         markers: Set<Marker>.of(snapshot.data!),
-//                         circles: {
-//                           Circle(
-//                             circleId: const CircleId('1'),
-//                             center: _currentPosition!,
-//                             radius: 500,
-//                             strokeWidth: 2,
-//                             strokeColor: Colors.blue,
-//                             fillColor: Colors.blue.withOpacity(0.2),
-//                           )
-//                         },
-//                       ),
-//                     ),
-//                   );
-//                 } else {
-//                   return const Text('Loading...');
-//                 }
-//               },
-//             ),
-//     );
-//   }
-// }
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      LatLng location = LatLng(position.latitude, position.longitude);
+
+      setState(() {
+        _currentPosition = location;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error getting location: $e');
+      setState(() {
+        _locationError = true;
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    if (_locationError) {
+      return Scaffold(
+        body: Center(
+          child: Text(
+            'Location permission denied or error getting location.',
+            style: TextStyle(color: Colors.red, fontSize: 16),
+          ),
+        ),
+      );
+    }
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF6E9E57),
+        elevation: 0,
+        toolbarHeight: 60,
+        title: const Text(
+          "Near Me",
+          style: TextStyle(
+            color: Color.fromARGB(255, 255, 255, 255),
+          ),
+        ),
+      ),
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : FutureBuilder<Set<Marker>>(
+              future: _getMarkersWithinRadius(_currentPosition!, 500),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return const Center(child: Text('Error loading map data.'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('No sellers found within the radius.'));
+                } else {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 10.0),
+                    child: SizedBox(
+                      height: 600,
+                      child: GoogleMap(
+                        mapType: MapType.terrain,
+                        initialCameraPosition: CameraPosition(
+                          target: _currentPosition!,
+                          zoom: 14.0,
+                        ),
+                        onMapCreated: (GoogleMapController controller) {
+                          _controller.complete(controller);
+                        },
+                        markers: snapshot.data!,
+                        circles: {
+                          Circle(
+                            circleId: const CircleId('1'),
+                            center: _currentPosition!,
+                            radius: 500,
+                            strokeWidth: 2,
+                            strokeColor: Colors.blue,
+                            fillColor: Colors.blue.withOpacity(0.2),
+                          )
+                        },
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 1,
+        onTap: (index) => _onItemTapped(context, index),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.location_on),
+            label: 'Near Me',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _onItemTapped(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeView()),
+        );
+        break;
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MapPage()),
+        );
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => ProfileView()),
+        );
+        break;
+    }
+  }
+}

@@ -8,7 +8,6 @@ import 'package:unshelf_buyer/views/basket_view.dart';
 import 'package:unshelf_buyer/views/bundle_view.dart';
 import 'package:unshelf_buyer/views/category_row_widget.dart';
 import 'package:unshelf_buyer/views/map_view.dart';
-import 'package:unshelf_buyer/views/near_me_view.dart';
 import 'package:unshelf_buyer/views/product_view.dart';
 import 'package:unshelf_buyer/views/profile_view.dart';
 
@@ -134,7 +133,7 @@ class HomeView extends StatelessWidget {
       case 1:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => MapView()),
+          MaterialPageRoute(builder: (context) => MapPage()),
         );
         break;
       case 2:
@@ -349,17 +348,6 @@ class HomeView extends StatelessWidget {
               '  PHP${data['price'].toStringAsFixed(2)}',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
             ),
-            //   const SizedBox(height: 8),
-            //   LinearProgressIndicator(
-            //     value: timeLeftPercentage,
-            //     backgroundColor: Colors.grey[300],
-            //     color: Colors.green,
-            //   ),
-            //   const SizedBox(height: 4),
-            //   Text(
-            //     'Ends in $timeLeftText',
-            //     style: const TextStyle(color: Colors.red, fontSize: 12),
-            //   ),
           ],
         ),
       ),
