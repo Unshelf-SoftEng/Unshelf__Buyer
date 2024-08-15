@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:unshelf_buyer/home_view.dart';
-import 'package:unshelf_buyer/profile_view.dart';
 import 'package:unshelf_buyer/register_view.dart';
 
 class LoginView extends StatefulWidget {
@@ -29,7 +28,7 @@ class _LoginViewState extends State<LoginView> {
         // Redirect to home page
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => ProfileView()),
+          MaterialPageRoute(builder: (context) => HomeView()),
         );
       } on FirebaseAuthException catch (e) {
         String message;

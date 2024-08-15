@@ -1,7 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:unshelf_buyer/home_view.dart';
 import 'package:unshelf_buyer/login_view.dart';
 
 void main() async {
@@ -16,6 +18,7 @@ void main() async {
       storageBucket: "unshelf-d4567.appspot.com",
     ),
   );
+
   runApp(const MyApp());
 }
 
@@ -32,7 +35,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         textTheme: GoogleFonts.jostTextTheme(Theme.of(context).textTheme),
       ),
-      home: LoginView(),
+      home: FirebaseAuth.instance.currentUser != null ? HomeView() : LoginView(),
     );
   }
 }

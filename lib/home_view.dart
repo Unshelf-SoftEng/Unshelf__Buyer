@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:unshelf_buyer/base_screen.dart';
+import 'package:unshelf_buyer/basket_view.dart';
+import 'package:unshelf_buyer/map_view.dart';
 import 'package:unshelf_buyer/product_view.dart';
+import 'package:unshelf_buyer/profile_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,10 +29,7 @@ class MyApp extends StatelessWidget {
 class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BaseScreen(
-      selectedIndex: 0,
-      child: HomeView(),
-    );
+    return HomeView();
   }
 }
 
@@ -81,7 +80,10 @@ class HomeView extends StatelessWidget {
               ),
             ),
             onPressed: () {
-              // Handle basket action
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => BasketView()),
+              );
             },
           ),
           IconButton(
@@ -93,7 +95,10 @@ class HomeView extends StatelessWidget {
               ),
             ),
             onPressed: () {
-              // Handle message action
+              // Navigator.pushReplacement(
+              //   context,
+              //   MaterialPageRoute(builder: (context) => ChatView()),
+              // );
             },
           ),
         ],
@@ -111,10 +116,7 @@ class HomeView extends StatelessWidget {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
-        onTap: (index) {
-          // Handle Bottom Navigation
-          Navigator.push(context, MaterialPageRoute(builder: (_) => HomeView()));
-        },
+        onTap: (index) => _onItemTapped(context, index),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
@@ -131,6 +133,29 @@ class HomeView extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _onItemTapped(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeView()),
+        );
+        break;
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MapView()),
+        );
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => ProfileView()),
+        );
+        break;
+    }
   }
 
   Widget _buildCarouselBanner() {

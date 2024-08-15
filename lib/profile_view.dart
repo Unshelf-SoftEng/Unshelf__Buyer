@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:unshelf_buyer/home_view.dart';
+import 'package:unshelf_buyer/login_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,11 +43,11 @@ class ProfileView extends StatelessWidget {
         future: getUserData(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
-            return Center(child: Text("Error loading profile data"));
+            return const Center(child: Text("Error loading profile data"));
           }
 
           final userData = snapshot.data!;
@@ -56,29 +57,29 @@ class ProfileView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.only(top: 10.0, left: 16.0, right: 16.0),
                     child: Row(
                       children: [
                         CircleAvatar(
                           radius: 40,
                           backgroundImage: CachedNetworkImageProvider(userData['profileImageUrl']),
                         ),
-                        SizedBox(width: 16),
+                        const SizedBox(width: 16),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               userData['name'],
-                              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                             ),
-                            SizedBox(height: 8),
+                            const SizedBox(height: 8),
                             Container(
-                              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
                                 color: Colors.green.shade100,
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              child: Row(
+                              child: const Row(
                                 children: [
                                   Icon(Icons.emoji_events, size: 20),
                                   SizedBox(width: 8),
@@ -96,23 +97,23 @@ class ProfileView extends StatelessWidget {
                   ),
                   Expanded(
                     child: ListView(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       children: [
                         SizedBox(height: 20),
-                        _buildProfileOption(context, Icons.list_alt, "Activity"),
-                        _buildProfileOption(context, Icons.payment, "Payment"),
-                        _buildProfileOption(context, Icons.track_changes, "Order Tracking"),
-                        _buildProfileOption(context, Icons.favorite, "Favorites"),
+                        _buildProfileOption(context, Icons.list_alt, "Activity", 1),
+                        _buildProfileOption(context, Icons.payment, "Payment", 2),
+                        _buildProfileOption(context, Icons.track_changes, "Order Tracking", 3),
+                        _buildProfileOption(context, Icons.favorite, "Favorites", 4),
                         Divider(),
-                        _buildProfileOption(context, Icons.location_on, "Addresses"),
-                        _buildProfileOption(context, Icons.subscriptions, "Subscriptions"),
-                        _buildProfileOption(context, Icons.share, "Referrals"),
-                        _buildProfileOption(context, Icons.card_giftcard, "Vouchers"),
+                        _buildProfileOption(context, Icons.location_on, "Addresses", 5),
+                        _buildProfileOption(context, Icons.subscriptions, "Subscriptions", 6),
+                        _buildProfileOption(context, Icons.share, "Referrals", 7),
+                        _buildProfileOption(context, Icons.card_giftcard, "Vouchers", 8),
                         Divider(),
-                        _buildProfileOption(context, Icons.help, "Help Center"),
-                        _buildProfileOption(context, Icons.settings, "Settings"),
-                        _buildProfileOption(context, Icons.support, "Customer Support"),
-                        _buildProfileOption(context, Icons.logout, "Log Out"),
+                        _buildProfileOption(context, Icons.help, "Help Center", 9),
+                        _buildProfileOption(context, Icons.settings, "Settings", 10),
+                        _buildProfileOption(context, Icons.support, "Customer Support", 11),
+                        _buildProfileOption(context, Icons.logout, "Log Out", 12),
                       ],
                     ),
                   ),
@@ -150,13 +151,42 @@ class ProfileView extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileOption(BuildContext context, IconData icon, String title) {
+  Widget _buildProfileOption(BuildContext context, IconData icon, String title, num index) {
     return ListTile(
       leading: Icon(icon, color: Colors.green),
       title: Text(title),
       onTap: () {
-        // TEMPORARY: Navigate to HomeView on click
-        Navigator.push(context, MaterialPageRoute(builder: (_) => HomeView()));
+        switch (index) {
+          case 1:
+            break;
+          case 2:
+            break;
+          case 3:
+            break;
+          case 4:
+            break;
+          case 5:
+            break;
+          case 6:
+            break;
+          case 7:
+            break;
+          case 8:
+            break;
+          case 9:
+            break;
+          case 10:
+            break;
+          case 11:
+            break;
+          case 12:
+            FirebaseAuth.instance.signOut();
+            Navigator.push(context, MaterialPageRoute(builder: (_) => LoginView()));
+            break;
+          default:
+            Navigator.push(context, MaterialPageRoute(builder: (_) => HomeView()));
+            break;
+        }
       },
     );
   }

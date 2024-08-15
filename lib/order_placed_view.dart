@@ -1,0 +1,81 @@
+import 'package:flutter/material.dart';
+import 'package:unshelf_buyer/home_view.dart';
+
+class OrderPlacedView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/salad_bowl.png',
+              height: 120,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Order Placed',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.green.shade900,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Your payment is complete.',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            RichText(
+              text: TextSpan(
+                text: 'Please check ',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey.shade700,
+                ),
+                children: <TextSpan>[
+                  TextSpan(
+                    text: 'Order Tracking',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green.shade900,
+                    ),
+                  ),
+                  const TextSpan(text: ' page in Profile'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green.shade700,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => HomeView()),
+                );
+              },
+              child: const Text(
+                'Continue Shopping',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
