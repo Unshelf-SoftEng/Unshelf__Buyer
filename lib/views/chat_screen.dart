@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:unshelf_buyer/chat_view.dart';
-import 'package:unshelf_buyer/basket_view.dart';
+import 'package:unshelf_buyer/views/chat_view.dart';
+import 'package:unshelf_buyer/views/basket_view.dart';
 
 import 'package:flutter/material.dart';
 
@@ -21,7 +21,7 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFF6E9E57), // Green color as in the image
+        backgroundColor: const Color(0xFF6E9E57), // Green color as in the image
         elevation: 0,
         toolbarHeight: 60,
         title: const Text(
@@ -49,24 +49,20 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('users')
-            .where('type', isEqualTo: 'seller')
-            .orderBy('name')
-            .snapshots(),
+        stream: FirebaseFirestore.instance.collection('stores').orderBy('store_name').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Text('Something went wrong');
+            return const Text('Something went wrong');
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Text("Loading");
+            return const Text("Loading");
           }
 
           if (snapshot.hasData) {
             return ListView.separated(
               separatorBuilder: (BuildContext context, int index) {
-                return SizedBox(height: 10);
+                return const SizedBox(height: 10);
               },
               itemCount: snapshot.data!.docs.length,
               itemBuilder: (context, index) {
@@ -77,7 +73,7 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
                       context,
                       MaterialPageRoute(
                         builder: (context) => ChatView(
-                          receiverName: data['name'],
+                          receiverName: data['store_name'],
                           receiverUserID: data.id,
                         ),
                       ),
@@ -85,14 +81,14 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
                   },
                   leading: CircleAvatar(
                     radius: 24,
-                    //backgroundImage: NetworkImage(data['profileUrl']),
+                    backgroundImage: NetworkImage(data['store_image_url']),
                   ),
-                  title: Text(data['name']),
+                  title: Text(data['store_name']),
                 );
               },
             );
           } else {
-            return Text('Ongoing');
+            return const Text('Ongoing');
           }
         },
       ),

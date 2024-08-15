@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:unshelf_buyer/home_view.dart';
+import 'package:unshelf_buyer/views/home_view.dart';
 
 class OrderPlacedView extends StatelessWidget {
   @override
@@ -10,8 +10,8 @@ class OrderPlacedView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
-              'assets/salad_bowl.png',
-              height: 120,
+              'assets/images/salad.png',
+              height: 200,
             ),
             const SizedBox(height: 24),
             Text(
@@ -60,9 +60,9 @@ class OrderPlacedView extends StatelessWidget {
                 ),
               ),
               onPressed: () {
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => HomeView()),
+                  MaterialPageRoute(builder: (_) => HomeView()),
                 );
               },
               child: const Text(

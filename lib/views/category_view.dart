@@ -2,7 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
-import 'package:unshelf_buyer/category_row_widget.dart';
+import 'package:unshelf_buyer/views/category_row_widget.dart';
+import 'package:unshelf_buyer/views/product_view.dart';
 
 class CategoryProductsPage extends StatelessWidget {
   final CategoryItem category;
@@ -13,13 +14,33 @@ class CategoryProductsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${category.name} Products'),
+        backgroundColor: const Color(0xFF6E9E57),
+        elevation: 0,
+        toolbarHeight: 60,
+        title: Container(
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: const Row(
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                child: Icon(
+                  Icons.search,
+                  color: Color(0xFFA3C38C),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('products').where('category', isEqualTo: category.categoryKey).snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           var products = snapshot.data!.docs;
@@ -32,20 +53,25 @@ class CategoryProductsPage extends StatelessWidget {
                 future: FirebaseFirestore.instance.collection('stores').doc(productData['sellerId']).get(),
                 builder: (context, storeSnapshot) {
                   if (!storeSnapshot.hasData) {
-                    return ListTile(title: Text('Loading...'));
+                    return const ListTile(title: Text('Loading...'));
                   }
 
                   var storeData = storeSnapshot.data!.data() as Map<String, dynamic>;
 
                   return ListTile(
                     leading: CircleAvatar(
-                      backgroundImage: CachedNetworkImageProvider(storeData['store_image_url']),
+                      backgroundImage: CachedNetworkImageProvider(productData['mainImageUrl']),
                     ),
                     title: Text(productData['name']),
                     subtitle: Text('P ${productData['price']}'),
                     trailing: Text(DateFormat('MMMM d, yyyy').format((productData['expiryDate'] as Timestamp).toDate())),
                     onTap: () {
-                      // Implement navigation to product details or other relevant actions
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProductPage(productId: products[index].id),
+                        ),
+                      );
                     },
                   );
                 },

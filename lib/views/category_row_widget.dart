@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:unshelf_buyer/category_view.dart';
+import 'package:unshelf_buyer/views/category_view.dart';
 
 class CategoryIconsRow extends StatelessWidget {
   final List<CategoryItem> categories = [

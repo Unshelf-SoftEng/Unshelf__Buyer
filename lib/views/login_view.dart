@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:unshelf_buyer/home_view.dart';
-import 'package:unshelf_buyer/register_view.dart';
+import 'package:unshelf_buyer/views/home_view.dart';
+import 'package:unshelf_buyer/views/register_view.dart';
 
 class LoginView extends StatefulWidget {
   @override

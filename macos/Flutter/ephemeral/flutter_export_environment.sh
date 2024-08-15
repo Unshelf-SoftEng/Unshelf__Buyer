@@ -1,4 +1,4 @@
-l#!/bin/sh
+#!/bin/sh
 # This is a generated file; do not edit or check into version control.
 export "FLUTTER_ROOT=C:\src\flutter"
 export "FLUTTER_APPLICATION_PATH=D:\Documents\Projects\unshelf_buyer"

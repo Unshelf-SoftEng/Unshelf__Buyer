@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:unshelf_buyer/chat_screen.dart';
-import 'package:unshelf_buyer/checkout_view.dart';
+import 'package:unshelf_buyer/views/checkout_view.dart';
 
 class BasketView extends StatefulWidget {
   @override
@@ -96,7 +95,7 @@ class _BasketViewState extends State<BasketView> {
         title: const Text(
           "Basket",
           style: TextStyle(
-            color: Color.fromARGB(255, 255, 255, 255), // Light green color for the text
+            color: Colors.white,
           ),
         ),
         actions: [
@@ -109,10 +108,10 @@ class _BasketViewState extends State<BasketView> {
               ),
             ),
             onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => ChatScreen()),
-              );
+              // Navigator.pushReplacement(
+              //   context,
+              //   MaterialPageRoute(builder: (context) => ChatView()),
+              // );
             },
           ),
         ],
@@ -235,23 +234,6 @@ class _BasketViewState extends State<BasketView> {
       bottomNavigationBar: BottomAppBar(
         child: Row(
           children: [
-            Checkbox(
-              value: selectedProductIds.length == groupedBasketItems.length,
-              onChanged: (value) {
-                setState(() {
-                  if (value == true) {
-                    groupedBasketItems.forEach((sellerId, items) {
-                      items.forEach((item) {
-                        selectedProductIds.add(item['productId']);
-                      });
-                    });
-                  } else {
-                    selectedProductIds.clear();
-                  }
-                  updateTotal();
-                });
-              },
-            ),
             Text("Total: ₱$total"),
             Spacer(),
             ElevatedButton(
@@ -264,10 +246,10 @@ class _BasketViewState extends State<BasketView> {
                           .toList();
 
                       // navigate and send selected items to CheckoutView
-                      Navigator.push(
+                      Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => CheckoutView(basketItems: selectedItems, sellerId: selectedSellerId),
+                          builder: (_) => CheckoutView(basketItems: selectedItems, sellerId: selectedSellerId),
                         ),
                       );
                     },

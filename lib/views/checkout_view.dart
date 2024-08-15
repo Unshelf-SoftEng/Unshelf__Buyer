@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:unshelf_buyer/order_placed_view.dart';
+import 'package:unshelf_buyer/views/order_placed_view.dart';
 
 class CheckoutView extends StatefulWidget {
   final List<Map<String, dynamic>> basketItems;
@@ -104,8 +104,8 @@ class _CheckoutViewState extends State<CheckoutView> {
                     CircleAvatar(
                       backgroundImage: displayedStoreImageUrl.isNotEmpty ? NetworkImage(displayedStoreImageUrl) : null,
                     ),
-                    SizedBox(width: 10),
-                    Text(displayedStoreName, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 10),
+                    Text(displayedStoreName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -126,7 +126,7 @@ class _CheckoutViewState extends State<CheckoutView> {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: ListTile(
                   title: Text(selectedOptions[sellerId] == 'For delivery' ? 'Delivery Details' : 'Pickup Details'),
-                  trailing: Icon(Icons.arrow_forward),
+                  trailing: const Icon(Icons.arrow_forward),
                   onTap: () {
                     if (selectedOptions[sellerId] == 'For delivery') {
                       // Navigate to Google Maps or a page where users can pin their address
@@ -136,24 +136,24 @@ class _CheckoutViewState extends State<CheckoutView> {
                   },
                 ),
               ),
-              Divider(color: Colors.grey),
+              const Divider(color: Colors.grey),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
                   children: [
                     Image.network(item['mainImageUrl'], width: 80, height: 80, fit: BoxFit.cover),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(item['name'], style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                          Text('₱${item['price']} x ${item['quantity']}', style: TextStyle(color: Colors.grey)),
+                          Text(item['name'], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                          Text('₱${item['price']} x ${item['quantity']}', style: const TextStyle(color: Colors.grey)),
                         ],
                       ),
                     ),
                     Text('₱${(item['price'] * item['quantity']).toStringAsFixed(2)}',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -164,9 +164,9 @@ class _CheckoutViewState extends State<CheckoutView> {
       bottomNavigationBar: BottomAppBar(
         child: Row(
           children: [
-            Spacer(),
-            Text("Total: ₱$totalAmount", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            Spacer(),
+            const Spacer(),
+            Text("Total: ₱$totalAmount", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Spacer(),
             ElevatedButton(
               onPressed: () async {
                 User? user = FirebaseAuth.instance.currentUser;
@@ -183,11 +183,11 @@ class _CheckoutViewState extends State<CheckoutView> {
                     'seller_id': widget.sellerId,
                     'status': 'Pending',
                   });
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => OrderPlacedView()));
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => OrderPlacedView()));
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromARGB(255, 106, 153, 78),
+                backgroundColor: const Color.fromARGB(255, 106, 153, 78),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),

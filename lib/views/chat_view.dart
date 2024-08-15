@@ -38,7 +38,7 @@ class _ChatViewState extends State<ChatView> with AutomaticKeepAliveClientMixin 
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -79,9 +79,7 @@ class _ChatViewState extends State<ChatView> with AutomaticKeepAliveClientMixin 
           return const Text('Loading...');
         }
         return ListView(
-          children: snapshot.data!.docs
-              .map((document) => _buildMessageItem(document))
-              .toList(),
+          children: snapshot.data!.docs.map((document) => _buildMessageItem(document)).toList(),
         );
       },
     );
@@ -89,23 +87,19 @@ class _ChatViewState extends State<ChatView> with AutomaticKeepAliveClientMixin 
 
   Widget _buildMessageItem(DocumentSnapshot document) {
     Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-    var alignment = (data['senderId'] == _firebaseAuth.currentUser!.uid)
-        ? Alignment.centerRight
-        : Alignment.centerLeft;
+    var alignment = (data['senderId'] == _firebaseAuth.currentUser!.uid) ? Alignment.centerRight : Alignment.centerLeft;
 
     return Container(
       alignment: alignment,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
-          crossAxisAlignment: (data['senderId'] == _firebaseAuth.currentUser!.uid)
-              ? CrossAxisAlignment.end
-              : CrossAxisAlignment.start,
-          mainAxisAlignment: (data['senderId'] == _firebaseAuth.currentUser!.uid)
-              ? MainAxisAlignment.end
-              : MainAxisAlignment.start,
+          crossAxisAlignment:
+              (data['senderId'] == _firebaseAuth.currentUser!.uid) ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          mainAxisAlignment:
+              (data['senderId'] == _firebaseAuth.currentUser!.uid) ? MainAxisAlignment.end : MainAxisAlignment.start,
           children: [
-            Text(widget.receiverName),
+            // Text(widget.receiverName),
             const SizedBox(height: 5),
             (data['senderId'] == _firebaseAuth.currentUser!.uid)
                 ? ChatBubble(message: data['message'], type: 'sender')
@@ -131,7 +125,7 @@ class _ChatViewState extends State<ChatView> with AutomaticKeepAliveClientMixin 
           IconButton(
             padding: EdgeInsets.zero,
             onPressed: sendMessage,
-            icon: Icon(
+            icon: const Icon(
               Icons.send,
               size: 30,
               color: Color(0xFF6E9E57),
