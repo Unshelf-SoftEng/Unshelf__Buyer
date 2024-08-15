@@ -1,8 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:unshelf_buyer/views/chat_screen.dart';
 import 'package:unshelf_buyer/views/checkout_view.dart';
+import 'package:unshelf_buyer/views/store_view.dart';
 
 class BasketView extends StatefulWidget {
   @override
@@ -34,14 +36,14 @@ class _BasketViewState extends State<BasketView> {
       final productId = doc.id;
       final quantity = doc['quantity'];
 
-      // Fetch product details from products collection
+      // Fetch product details
       final productSnapshot = await FirebaseFirestore.instance.collection('products').doc(productId).get();
 
       if (productSnapshot.exists) {
         final productData = productSnapshot.data();
         final sellerId = productData?['sellerId'];
 
-        // Fetch store details from stores collection
+        // Fetch store details
         final storeSnapshot = await FirebaseFirestore.instance.collection('stores').doc(sellerId).get();
 
         if (storeSnapshot.exists) {
@@ -136,15 +138,28 @@ class _BasketViewState extends State<BasketView> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
+              GestureDetector(
+                onTap: () {
+                  if (sellerId != null) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => StoreView(storeId: sellerId),
+                      ),
+                    );
+                  }
+                },
                 child: Row(
                   children: [
                     CircleAvatar(
-                      backgroundImage: NetworkImage(storeImageUrl),
+                      backgroundImage: sellerId != null ? CachedNetworkImageProvider(storeImageUrl) : null,
+                      radius: 20,
                     ),
-                    const SizedBox(width: 10),
-                    Text(storeName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 8.0),
+                    Text(
+                      sellerId != null ? storeName : 'Loading...',
+                      style: const TextStyle(fontSize: 16),
+                    ),
                   ],
                 ),
               ),
@@ -244,7 +259,8 @@ class _BasketViewState extends State<BasketView> {
       bottomNavigationBar: BottomAppBar(
         child: Row(
           children: [
-            Text("Total: ₱$total"),
+            const Spacer(),
+            Text("Total: ₱$total", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const Spacer(),
             ElevatedButton(
               onPressed: selectedProductIds.isEmpty
@@ -264,14 +280,18 @@ class _BasketViewState extends State<BasketView> {
                       );
                     },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
+                backgroundColor: const Color.fromARGB(255, 106, 153, 78),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
               child: const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                child: Text("CHECKOUT", style: TextStyle(fontSize: 16)),
+                child: Text("CHECKOUT",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white,
+                    )),
               ),
             ),
           ],

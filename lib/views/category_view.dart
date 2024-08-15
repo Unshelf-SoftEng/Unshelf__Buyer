@@ -17,24 +17,6 @@ class CategoryProductsPage extends StatelessWidget {
         backgroundColor: const Color(0xFF6E9E57),
         elevation: 0,
         toolbarHeight: 60,
-        title: Container(
-          height: 40,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: const Row(
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0),
-                child: Icon(
-                  Icons.search,
-                  color: Color(0xFFA3C38C),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('products').where('category', isEqualTo: category.categoryKey).snapshots(),
