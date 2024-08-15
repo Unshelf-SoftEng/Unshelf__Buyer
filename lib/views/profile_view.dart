@@ -4,8 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:unshelf_buyer/home_view.dart';
-import 'package:unshelf_buyer/login_view.dart';
+import 'package:unshelf_buyer/views/home_view.dart';
+import 'package:unshelf_buyer/views/login_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -99,17 +99,17 @@ class ProfileView extends StatelessWidget {
                     child: ListView(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       children: [
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
                         _buildProfileOption(context, Icons.list_alt, "Activity", 1),
                         _buildProfileOption(context, Icons.payment, "Payment", 2),
                         _buildProfileOption(context, Icons.track_changes, "Order Tracking", 3),
                         _buildProfileOption(context, Icons.favorite, "Favorites", 4),
-                        Divider(),
+                        const Divider(),
                         _buildProfileOption(context, Icons.location_on, "Addresses", 5),
                         _buildProfileOption(context, Icons.subscriptions, "Subscriptions", 6),
                         _buildProfileOption(context, Icons.share, "Referrals", 7),
                         _buildProfileOption(context, Icons.card_giftcard, "Vouchers", 8),
-                        Divider(),
+                        const Divider(),
                         _buildProfileOption(context, Icons.help, "Help Center", 9),
                         _buildProfileOption(context, Icons.settings, "Settings", 10),
                         _buildProfileOption(context, Icons.support, "Customer Support", 11),

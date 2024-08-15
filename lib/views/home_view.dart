@@ -1,42 +1,18 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:unshelf_buyer/basket_view.dart';
-import 'package:unshelf_buyer/category_row_widget.dart';
-import 'package:unshelf_buyer/map_view.dart';
-import 'package:unshelf_buyer/product_view.dart';
-import 'package:unshelf_buyer/profile_view.dart';
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: HomeScreen(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
-class HomeScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return HomeView();
-  }
-}
+import 'package:unshelf_buyer/views/basket_view.dart';
+import 'package:unshelf_buyer/views/category_row_widget.dart';
+import 'package:unshelf_buyer/views/map_view.dart';
+import 'package:unshelf_buyer/views/product_view.dart';
+import 'package:unshelf_buyer/views/profile_view.dart';
 
 class HomeView extends StatelessWidget {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final List<String> categoryList = ['Grocery', 'Fruits', 'Vegetables', 'Baked Goods', 'Meals'];
+  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   HomeView({super.key});
 
@@ -44,7 +20,7 @@ class HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFF6E9E57),
+        backgroundColor: const Color(0xFF6E9E57),
         elevation: 0,
         toolbarHeight: 60,
         title: Container(
@@ -110,7 +86,7 @@ class HomeView extends StatelessWidget {
         bottom: PreferredSize(
             preferredSize: const Size.fromHeight(4.0),
             child: Container(
-              color: Color.fromARGB(255, 200, 221, 150),
+              color: const Color.fromARGB(255, 200, 221, 150),
               height: 4.0,
             )),
       ),
@@ -120,7 +96,7 @@ class HomeView extends StatelessWidget {
             _buildCarouselBanner(),
             CategoryIconsRow(),
             _buildSellingOutSection(),
-            // _buildBundleDealsSection(),
+            _buildBundleDealsSection(),
           ],
         ),
       ),
@@ -169,31 +145,53 @@ class HomeView extends StatelessWidget {
   }
 
   Widget _buildCarouselBanner() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: CarouselSlider(
-        options: CarouselOptions(height: 150.0, autoPlay: true),
-        items: [1, 2, 3, 4, 5].map((i) {
-          return Builder(
-            builder: (BuildContext context) {
-              return Container(
-                width: MediaQuery.of(context).size.width,
-                margin: const EdgeInsets.symmetric(horizontal: 5.0),
-                decoration: const BoxDecoration(
-                  color: Colors.green,
-                ),
-                child: Center(
-                  child: Text(
-                    'Christmas Mega Sale Banner $i',
-                    style: const TextStyle(fontSize: 16.0, color: Colors.white),
-                  ),
-                ),
+    return FutureBuilder<List<String>>(
+      future: _getBannerImageUrls(), // Fetch URLs from Firebase Storage
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('No banners available.'));
+        }
+
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: CarouselSlider(
+            options: CarouselOptions(height: 150.0, autoPlay: true),
+            items: snapshot.data!.map((url) {
+              return Builder(
+                builder: (BuildContext context) {
+                  return Container(
+                    width: MediaQuery.of(context).size.width,
+                    margin: const EdgeInsets.symmetric(horizontal: 5.0),
+                    child: CachedNetworkImage(
+                      imageUrl: url,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                      errorWidget: (context, url, error) => const Center(child: Icon(Icons.error)),
+                    ),
+                  );
+                },
               );
-            },
-          );
-        }).toList(),
-      ),
+            }).toList(),
+          ),
+        );
+      },
     );
+  }
+
+  Future<List<String>> _getBannerImageUrls() async {
+    try {
+      final ListResult result = await _storage.ref('banner_images').listAll();
+      final List<String> imageUrls = await Future.wait(
+        result.items.map((Reference ref) => ref.getDownloadURL()).toList(),
+      );
+      return imageUrls;
+    } catch (e) {
+      print('Error fetching banner images: $e');
+      return [];
+    }
   }
 
   Widget _buildCategories() {
@@ -223,9 +221,42 @@ class HomeView extends StatelessWidget {
     return _buildProductCarousel('Selling Out', 'sellingOut');
   }
 
-  // Widget _buildBundleDealsSection() {
-  //   return _buildProductCarousel('Bundle Deals', 'bundleDeals');
-  // }
+  Widget _buildBundleDealsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.all(8.0),
+          child: Text(
+            "Bundle Deals",
+            style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+          ),
+        ),
+        StreamBuilder<QuerySnapshot>(
+          stream: _firestore.collection('bundles').snapshots(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            final bundles = snapshot.data!.docs;
+
+            return CarouselSlider(
+              options: CarouselOptions(
+                height: 200.0,
+                viewportFraction: 0.5,
+              ),
+              items: bundles.map((bundle) {
+                final data = bundle.data() as Map<String, dynamic>;
+                final bundleId = bundle.id;
+                return _buildProductCard(data, bundleId, context);
+              }).toList(),
+            );
+          },
+        ),
+      ],
+    );
+  }
 
   Widget _buildProductCarousel(String title, String collection) {
     return Column(
@@ -316,21 +347,24 @@ class HomeView extends StatelessWidget {
                 style: const TextStyle(fontSize: 14.0, color: Colors.green),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Ends in: ${_calculateTimeLeft(data['expiryDate'])}',
-                style: const TextStyle(fontSize: 12.0, color: Colors.red),
-              ),
-            ),
+            //
+            //  "Ends in" text
+            //
+            // Padding(
+            //   padding: const EdgeInsets.all(8.0),
+            //   child: Text(
+            //     'Ends in: ${_calculateTimeLeft(data['expiryDate'])}',
+            //     style: const TextStyle(fontSize: 12.0, color: Colors.red),
+            //   ),
+            // ),
           ],
         ),
       ),
     );
   }
 
-  String _calculateTimeLeft(Timestamp expiryDate) {
-    final timeLeft = expiryDate.toDate().difference(DateTime.now());
-    return '${timeLeft.inHours}h ${timeLeft.inMinutes % 60}m';
-  }
+  // String _calculateTimeLeft(Timestamp expiryDate) {
+  //   final timeLeft = expiryDate.toDate().difference(DateTime.now());
+  //   return '${timeLeft.inHours}h ${timeLeft.inMinutes % 60}m';
+  // }
 }

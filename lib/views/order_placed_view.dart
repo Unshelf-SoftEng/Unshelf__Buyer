@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:unshelf_buyer/home_view.dart';
+import 'package:unshelf_buyer/views/home_view.dart';
 
 class OrderPlacedView extends StatelessWidget {
   @override

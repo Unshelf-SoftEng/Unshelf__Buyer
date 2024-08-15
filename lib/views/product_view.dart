@@ -3,8 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:unshelf_buyer/basket_view.dart';
-import 'package:unshelf_buyer/store_view.dart';
+import 'package:unshelf_buyer/views/basket_view.dart';
+import 'package:unshelf_buyer/views/store_view.dart';
 
 class ProductPage extends StatefulWidget {
   final String productId;
@@ -42,7 +42,7 @@ class _ProductPageState extends State<ProductPage> {
         future: FirebaseFirestore.instance.collection('products').doc(widget.productId).get(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           var productData = snapshot.data!.data() as Map<String, dynamic>;
@@ -54,8 +54,8 @@ class _ProductPageState extends State<ProductPage> {
                   // Product image
                   CachedNetworkImage(
                     imageUrl: productData['mainImageUrl'],
-                    placeholder: (context, url) => Center(child: CircularProgressIndicator()),
-                    errorWidget: (context, url, error) => Center(child: Icon(Icons.error)),
+                    placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                    errorWidget: (context, url, error) => const Center(child: Icon(Icons.error)),
                     width: double.infinity,
                     height: MediaQuery.of(context).size.height * 0.4,
                     fit: BoxFit.cover,
@@ -69,10 +69,10 @@ class _ProductPageState extends State<ProductPage> {
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      backgroundColor: Color(0xFF6E9E57),
-                      child: Icon(Icons.arrow_back, color: Colors.white),
+                      backgroundColor: const Color(0xFF6E9E57),
+                      child: const Icon(Icons.arrow_back, color: Colors.white),
                       mini: true,
-                      shape: CircleBorder(side: BorderSide(color: Colors.white, width: 2.0)),
+                      shape: const CircleBorder(side: BorderSide(color: Colors.white, width: 2.0)),
                     ),
                   ),
                   Positioned(
@@ -85,10 +85,10 @@ class _ProductPageState extends State<ProductPage> {
                           MaterialPageRoute(builder: (context) => BasketView()),
                         );
                       },
-                      backgroundColor: Color(0xFF6E9E57),
-                      child: Icon(Icons.shopping_cart, color: Colors.white),
+                      backgroundColor: const Color(0xFF6E9E57),
+                      child: const Icon(Icons.shopping_cart, color: Colors.white),
                       mini: true,
-                      shape: CircleBorder(side: BorderSide(color: Colors.white, width: 2.0)),
+                      shape: const CircleBorder(side: BorderSide(color: Colors.white, width: 2.0)),
                     ),
                   ),
                 ],
@@ -103,23 +103,23 @@ class _ProductPageState extends State<ProductPage> {
                     children: [
                       Text(
                         productData['name'],
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                       ),
-                      SizedBox(height: 8.0),
+                      const SizedBox(height: 8.0),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             'P ${productData['price']}',
-                            style: TextStyle(fontSize: 20, color: Colors.green, fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontSize: 20, color: Colors.green, fontWeight: FontWeight.bold),
                           ),
-                          Text(
+                          const Text(
                             'Distance: 6 km', // Modify or calculate dynamically if needed
                             style: TextStyle(fontSize: 16, color: Colors.grey),
                           ),
                         ],
                       ),
-                      SizedBox(height: 8.0),
+                      const SizedBox(height: 8.0),
                       GestureDetector(
                         onTap: () {
                           if (sellerData != null) {
@@ -138,51 +138,51 @@ class _ProductPageState extends State<ProductPage> {
                                   sellerData != null ? CachedNetworkImageProvider(sellerData!['store_image_url']) : null,
                               radius: 20,
                             ),
-                            SizedBox(width: 8.0),
+                            const SizedBox(width: 8.0),
                             Text(
                               sellerData != null ? sellerData!['store_name'] : 'Loading...',
-                              style: TextStyle(fontSize: 16),
+                              style: const TextStyle(fontSize: 16),
                             ),
                           ],
                         ),
                       ),
-                      SizedBox(height: 16.0),
+                      const SizedBox(height: 16.0),
                       Text(
                         'Expiration: ${DateFormat('MMMM d, yyyy').format((productData['expiryDate'] as Timestamp).toDate())}',
-                        style: TextStyle(fontSize: 16, color: Colors.green),
+                        style: const TextStyle(fontSize: 16, color: Colors.green),
                       ),
-                      SizedBox(height: 8.0),
-                      Text(
+                      const SizedBox(height: 8.0),
+                      const Text(
                         'Description',
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
-                      SizedBox(height: 8.0),
+                      const SizedBox(height: 8.0),
                       Text(
                         productData['description'],
-                        style: TextStyle(fontSize: 16),
+                        style: const TextStyle(fontSize: 16),
                       ),
-                      SizedBox(height: 8.0),
-                      Text(
+                      const SizedBox(height: 8.0),
+                      const Text(
                         'Note: Store in room temperature',
                         style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
                       ),
-                      SizedBox(height: 16.0),
+                      const SizedBox(height: 16.0),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Quantity:', style: TextStyle(fontSize: 18)),
+                          const Text('Quantity:', style: TextStyle(fontSize: 18)),
                           Row(
                             children: [
                               IconButton(
-                                icon: Icon(Icons.remove),
+                                icon: const Icon(Icons.remove),
                                 onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
                               ),
                               Text(
                                 _quantity.toString(),
-                                style: TextStyle(fontSize: 18),
+                                style: const TextStyle(fontSize: 18),
                               ),
                               IconButton(
-                                icon: Icon(Icons.add),
+                                icon: const Icon(Icons.add),
                                 onPressed: () => setState(() => _quantity++),
                               ),
                             ],
@@ -209,8 +209,8 @@ class _ProductPageState extends State<ProductPage> {
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                 child: Text("FAVORITE", style: TextStyle(fontSize: 16, color: Colors.white)),
               ),
             ),
@@ -222,8 +222,8 @@ class _ProductPageState extends State<ProductPage> {
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                 child: Text("ADD TO CART", style: TextStyle(fontSize: 16, color: Colors.white)),
               ),
             ),
@@ -245,11 +245,11 @@ class _ProductPageState extends State<ProductPage> {
             .set({'added_at': FieldValue.serverTimestamp()});
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Added to Favorites')),
+          const SnackBar(content: Text('Added to Favorites')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('You need to be logged in to add favorites')),
+          const SnackBar(content: Text('You need to be logged in to add favorites')),
         );
       }
     } catch (e) {
@@ -271,11 +271,11 @@ class _ProductPageState extends State<ProductPage> {
             .set({'quantity': quantity});
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Added to Cart')),
+          const SnackBar(content: Text('Added to Cart')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('You need to be logged in to add items to cart')),
+          const SnackBar(content: Text('You need to be logged in to add items to cart')),
         );
       }
     } catch (e) {

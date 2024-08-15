@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:unshelf_buyer/product_view.dart';
-import 'package:unshelf_buyer/profile_view.dart';
+import 'package:unshelf_buyer/views/product_view.dart';
+import 'package:unshelf_buyer/views/profile_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
