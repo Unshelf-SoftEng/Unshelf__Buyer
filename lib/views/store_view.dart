@@ -6,6 +6,7 @@ import 'package:unshelf_buyer/views/home_view.dart';
 import 'package:unshelf_buyer/views/map_view.dart';
 import 'package:unshelf_buyer/views/product_view.dart';
 import 'package:unshelf_buyer/views/profile_view.dart';
+import 'package:unshelf_buyer/views/store_address_view.dart';
 
 class StoreView extends StatefulWidget {
   final String storeId;
@@ -137,12 +138,12 @@ class _StoreViewState extends State<StoreView> {
                             children: [
                               Icon(Icons.star, color: Colors.amber, size: 16),
                               Text(
-                                '9.9 Rating',
+                                '5.0 Rating',
                                 style: TextStyle(fontSize: 14, color: Colors.white),
                               ),
                               SizedBox(width: 10),
                               Text(
-                                '999 Followers',
+                                '0 Followers',
                                 style: TextStyle(fontSize: 14, color: Colors.white),
                               ),
                             ],
@@ -153,7 +154,7 @@ class _StoreViewState extends State<StoreView> {
                       Column(
                         children: [
                           ElevatedButton(
-                            onPressed: null, // Add functionality
+                            onPressed: (null), // Add functionality
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF66BB6A),
                               side: const BorderSide(color: Color.fromARGB(255, 255, 255, 255), width: 1.0),
@@ -193,7 +194,15 @@ class _StoreViewState extends State<StoreView> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: ElevatedButton(
-                    onPressed: null, // Add functionality
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => StoreAddressView(),
+                          fullscreenDialog: true,
+                        ),
+                      );
+                    }, // Add functionality
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF66BB6A),
                       shape: RoundedRectangleBorder(

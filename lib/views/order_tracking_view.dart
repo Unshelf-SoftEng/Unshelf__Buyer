@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:unshelf_buyer/views/home_view.dart';
 import 'package:unshelf_buyer/views/map_view.dart';
@@ -6,6 +7,7 @@ import 'package:unshelf_buyer/views/profile_view.dart';
 
 class OrderTrackingView extends StatelessWidget {
   const OrderTrackingView({Key? key}) : super(key: key);
+
   Future<Map<String, dynamic>> fetchOrderDetails(String orderId) async {
     final orderSnapshot = await FirebaseFirestore.instance.collection('orders').doc(orderId).get();
     final orderData = orderSnapshot.data();
@@ -50,6 +52,7 @@ class OrderTrackingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final FirebaseAuth _auth = FirebaseAuth.instance;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF6E9E57),
@@ -63,7 +66,7 @@ class OrderTrackingView extends StatelessWidget {
         ),
       ),
       body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('orders').snapshots(),
+        stream: FirebaseFirestore.instance.collection('orders').where('buyer_id', isEqualTo: _auth.currentUser!.uid).snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
@@ -108,7 +111,7 @@ class OrderTrackingView extends StatelessWidget {
                         const Divider(),
                         ListTile(
                           title: const Text("Delivery details"),
-                          subtitle: Text("Status: $status\nEstimated delivery time: time"),
+                          subtitle: Text("Status: $status\nEstimated delivery time: 12:00"),
                         ),
                         const Divider(),
                         ...orderItems.map<Widget>((item) {

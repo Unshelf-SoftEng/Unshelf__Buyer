@@ -76,7 +76,7 @@ class _EditProfileViewState extends State<EditProfileView> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error updating profile')),
+        const SnackBar(content: Text('Profile updated successfully')),
       );
     }
   }

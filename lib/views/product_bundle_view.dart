@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:unshelf_buyer/views/basket_view.dart';
+import 'package:unshelf_buyer/views/product_view.dart';
 import 'package:unshelf_buyer/views/store_view.dart';
 
 class BundleView extends StatefulWidget {
@@ -171,7 +172,7 @@ class _BundleViewState extends State<BundleView> {
                       FutureBuilder<QuerySnapshot>(
                         future: FirebaseFirestore.instance
                             .collection('products')
-                            .where(FieldPath.documentId, whereIn: bundleData['productIds'])
+                            .where(FieldPath.documentId, whereIn: bundleData['productIds'] ?? [])
                             .get(),
                         builder: (context, productSnapshot) {
                           if (!productSnapshot.hasData) {
@@ -179,6 +180,11 @@ class _BundleViewState extends State<BundleView> {
                           }
 
                           var products = productSnapshot.data!.docs;
+
+                          if (products.isEmpty) {
+                            return const Text('No products found in this bundle.');
+                          }
+
                           return SizedBox(
                             height: 200.0,
                             child: ListView.builder(
@@ -186,34 +192,48 @@ class _BundleViewState extends State<BundleView> {
                               itemCount: products.length,
                               itemBuilder: (context, index) {
                                 var product = products[index].data() as Map<String, dynamic>;
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                  child: Column(
-                                    children: [
-                                      CachedNetworkImage(
-                                        imageUrl: product['mainImageUrl'],
-                                        placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                                        errorWidget: (context, url, error) => const Icon(Icons.error),
-                                        width: 120,
-                                        height: 120,
-                                        fit: BoxFit.cover,
+                                return GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ProductPage(productId: products[index].id),
                                       ),
-                                      const SizedBox(height: 8.0),
-                                      Text(
-                                        product['name'],
-                                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                                      ),
-                                      const SizedBox(height: 4.0),
-                                      Text(
-                                        'P ${product['price']}',
-                                        style: const TextStyle(fontSize: 14, color: Colors.green),
-                                      ),
-                                      const SizedBox(height: 4.0),
-                                      Text(
-                                        '${product['discount']}% off',
-                                        style: const TextStyle(fontSize: 12, color: Colors.red),
-                                      ),
-                                    ],
+                                    );
+                                  },
+                                  child: Card(
+                                    margin: const EdgeInsets.only(right: 8.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        CachedNetworkImage(
+                                          imageUrl: product['mainImageUrl'] ?? '',
+                                          placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                                          errorWidget: (context, url, error) => const Center(child: Icon(Icons.error)),
+                                          width: 120.0,
+                                          height: 120.0,
+                                          fit: BoxFit.cover,
+                                        ),
+                                        const SizedBox(height: 8.0),
+                                        Padding(
+                                          padding: const EdgeInsets.all(3.0),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                product['name'] ?? 'No Name',
+                                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              Text(
+                                                'P ${product['price'] ?? 0}',
+                                                style: const TextStyle(fontSize: 14, color: Colors.green),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 );
                               },
@@ -230,36 +250,20 @@ class _BundleViewState extends State<BundleView> {
         },
       ),
       bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            ElevatedButton(
-              onPressed: () => _addToFavorites(context, widget.bundleId),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green[700],
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                child: Text("FAVORITE", style: TextStyle(fontSize: 16, color: Colors.white)),
+        child: Center(
+          child: ElevatedButton(
+            onPressed: () => _addToCart(context, widget.bundleId, 1),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green[500],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
             ),
-            ElevatedButton(
-              onPressed: () => {_addToCart(context, widget.bundleId, 1)}, // Default quantity to 1 for bundles
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green[500],
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                child: Text("ADD TO CART", style: TextStyle(fontSize: 16, color: Colors.white)),
-              ),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              child: Text("ADD TO CART", style: TextStyle(fontSize: 16, color: Colors.white)),
             ),
-          ],
+          ),
         ),
       ),
     );
