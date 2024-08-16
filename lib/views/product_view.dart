@@ -18,11 +18,13 @@ class ProductPage extends StatefulWidget {
 class _ProductPageState extends State<ProductPage> {
   int _quantity = 1;
   Map<String, dynamic>? sellerData;
+  bool isFavorite = false;
 
   @override
   void initState() {
     super.initState();
     _fetchSellerData();
+    _checkIfFavorite();
   }
 
   Future<void> _fetchSellerData() async {
@@ -33,6 +35,40 @@ class _ProductPageState extends State<ProductPage> {
     setState(() {
       sellerData = sellerSnapshot.data();
     });
+  }
+
+  Future<void> _checkIfFavorite() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      var favoriteDoc =
+          await FirebaseFirestore.instance.collection('users').doc(user.uid).collection('favorites').doc(widget.productId).get();
+
+      setState(() {
+        isFavorite = favoriteDoc.exists;
+      });
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      var favoriteRef =
+          FirebaseFirestore.instance.collection('users').doc(user.uid).collection('favorites').doc(widget.productId);
+
+      if (isFavorite) {
+        await favoriteRef.delete();
+      } else {
+        await favoriteRef.set({'added_at': FieldValue.serverTimestamp(), 'is_bundle': false});
+      }
+
+      setState(() {
+        isFavorite = !isFavorite;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(isFavorite ? 'Added to Favorites' : 'Removed from Favorites')),
+      );
+    }
   }
 
   @override
@@ -104,16 +140,28 @@ class _ProductPageState extends State<ProductPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        productData['name'],
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            productData['name'],
+                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              isFavorite ? Icons.favorite : Icons.favorite_border,
+                              color: Colors.green,
+                            ),
+                            onPressed: _toggleFavorite,
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8.0),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'P ${productData['price']}',
+                            '₱${productData['price']} / ${productData['quantifier']}',
                             style: const TextStyle(fontSize: 20, color: Colors.green, fontWeight: FontWeight.bold),
                           ),
                           const Text(
@@ -201,65 +249,23 @@ class _ProductPageState extends State<ProductPage> {
         },
       ),
       bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            ElevatedButton(
-              onPressed: () => _addToFavorites(context, widget.productId),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green[700],
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                child: Text("FAVORITE", style: TextStyle(fontSize: 16, color: Colors.white)),
+        child: Center(
+          child: ElevatedButton(
+            onPressed: () => _addToCart(context, widget.productId, _quantity),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green[500],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
             ),
-            ElevatedButton(
-              onPressed: () => {_addToCart(context, widget.productId, _quantity)},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green[500],
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                child: Text("ADD TO CART", style: TextStyle(fontSize: 16, color: Colors.white)),
-              ),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              child: Text("ADD TO CART", style: TextStyle(fontSize: 16, color: Colors.white)),
             ),
-          ],
+          ),
         ),
       ),
     );
-  }
-
-  Future<void> _addToFavorites(BuildContext context, String productId) async {
-    try {
-      User? user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .collection('favorites')
-            .doc(productId)
-            .set({'added_at': FieldValue.serverTimestamp(), 'is_bundle': false});
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Added to Favorites')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('You need to be logged in to add favorites')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to add to favorites: $e')),
-      );
-    }
   }
 
   Future<void> _addToCart(BuildContext context, String productId, int quantity) async {

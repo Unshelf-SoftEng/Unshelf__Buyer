@@ -9,6 +9,7 @@ import 'package:unshelf_buyer/views/home_view.dart';
 import 'package:unshelf_buyer/views/login_view.dart';
 import 'package:unshelf_buyer/views/map_view.dart';
 import 'package:unshelf_buyer/views/order_tracking_view.dart';
+import 'package:unshelf_buyer/views/profile_favorites_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -195,6 +196,13 @@ class ProfileView extends StatelessWidget {
             );
             break;
           case 3:
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const FavoritesView(),
+                fullscreenDialog: true,
+              ),
+            );
             break;
           case 4:
             break;
