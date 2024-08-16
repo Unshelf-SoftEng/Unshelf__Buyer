@@ -8,6 +8,7 @@ import 'package:unshelf_buyer/views/edit_profile_view.dart';
 import 'package:unshelf_buyer/views/home_view.dart';
 import 'package:unshelf_buyer/views/login_view.dart';
 import 'package:unshelf_buyer/views/map_view.dart';
+import 'package:unshelf_buyer/views/order_tracking_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -103,9 +104,9 @@ class ProfileView extends StatelessWidget {
                       children: [
                         const SizedBox(height: 20),
                         _buildProfileOption(context, Icons.list_alt, "Edit Profile", 1),
-                        _buildProfileOption(context, Icons.payment, "Payment", 2),
-                        _buildProfileOption(context, Icons.track_changes, "Order Tracking", 3),
-                        _buildProfileOption(context, Icons.favorite, "Favorites", 4),
+                        _buildProfileOption(context, Icons.track_changes, "Order Tracking", 2),
+                        _buildProfileOption(context, Icons.favorite, "Favorites", 3),
+                        _buildProfileOption(context, Icons.payment, "Payment", 4),
                         const Divider(),
                         _buildProfileOption(context, Icons.location_on, "Addresses", 5),
                         _buildProfileOption(context, Icons.subscriptions, "Subscriptions", 6),
@@ -185,6 +186,13 @@ class ProfileView extends StatelessWidget {
             );
             break;
           case 2:
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const OrderTrackingView(),
+                fullscreenDialog: true,
+              ),
+            );
             break;
           case 3:
             break;
