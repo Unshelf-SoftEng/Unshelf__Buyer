@@ -1,11 +1,10 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:http/http.dart' as http; // Add this line
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:unshelf_buyer/models/bundle_model.dart';
 import 'package:unshelf_buyer/models/product_model.dart';
@@ -14,8 +13,7 @@ class BundleViewModel extends ChangeNotifier {
   final TextEditingController bundleNameController = TextEditingController();
   final TextEditingController bundlePriceController = TextEditingController();
   final TextEditingController bundleStockController = TextEditingController();
-  final TextEditingController bundleDiscountController =
-      TextEditingController();
+  final TextEditingController bundleDiscountController = TextEditingController();
   final formKey = GlobalKey<FormState>();
   final ImagePicker _picker = ImagePicker();
 
@@ -52,14 +50,10 @@ class BundleViewModel extends ChangeNotifier {
   Future<void> _fetchProducts() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final productSnapshot = await FirebaseFirestore.instance
-          .collection('products')
-          .where('sellerId', isEqualTo: user.uid)
-          .get();
+      final productSnapshot =
+          await FirebaseFirestore.instance.collection('products').where('sellerId', isEqualTo: user.uid).get();
 
-      _products = productSnapshot.docs
-          .map((doc) => ProductModel.fromSnapshot(doc))
-          .toList();
+      _products = productSnapshot.docs.map((doc) => ProductModel.fromSnapshot(doc)).toList();
 
       print('Products: $_products');
       notifyListeners();
@@ -82,12 +76,8 @@ class BundleViewModel extends ChangeNotifier {
     if (_selectedProductIds.isEmpty) {
       _maxStock = 0;
     } else {
-      final selectedProducts = _products
-          .where((product) => _selectedProductIds.contains(product.id))
-          .toList();
-      _maxStock = selectedProducts
-          .map((product) => product.stock)
-          .reduce((min, stock) => stock < min ? stock : min);
+      final selectedProducts = _products.where((product) => _selectedProductIds.contains(product.id)).toList();
+      _maxStock = selectedProducts.map((product) => product.stock).reduce((min, stock) => stock < min ? stock : min);
     }
     notifyListeners();
   }
@@ -97,8 +87,7 @@ class BundleViewModel extends ChangeNotifier {
       final bundleName = bundleNameController.text;
       final bundlePrice = double.tryParse(bundlePriceController.text) ?? 0.0;
       final bundleStock = int.tryParse(bundleStockController.text) ?? 0;
-      final bundleDiscount =
-          double.tryParse(bundleDiscountController.text) ?? 0.0;
+      final bundleDiscount = double.tryParse(bundleDiscountController.text) ?? 0.0;
 
       if (bundleName.isEmpty || _selectedProductIds.isEmpty) {
         throw Exception('Bundle name or selected products cannot be empty');
@@ -106,9 +95,7 @@ class BundleViewModel extends ChangeNotifier {
 
       User user = FirebaseAuth.instance.currentUser!;
 
-      final mainImageRef = FirebaseStorage.instance
-          .ref()
-          .child('bundle_images/${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final mainImageRef = FirebaseStorage.instance.ref().child('bundle_images/${DateTime.now().millisecondsSinceEpoch}.jpg');
 
       await mainImageRef.putData(_mainImageData!);
 
@@ -170,16 +157,13 @@ class BundleViewModel extends ChangeNotifier {
     );
 
     try {
-      final response =
-          await http.post(Uri.parse(url), headers: headers, body: body);
+      final response = await http.post(Uri.parse(url), headers: headers, body: body);
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         print('Suggestions: $data');
 
-        _suggestions = (data['bundles'] as List)
-            .map<BundleModel>((bundle) => BundleModel.fromJson(bundle))
-            .toList();
+        _suggestions = (data['bundles'] as List).map<BundleModel>((bundle) => BundleModel.fromJson(bundle)).toList();
 
         notifyListeners();
       } else {
