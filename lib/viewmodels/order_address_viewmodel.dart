@@ -3,9 +3,9 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class StoreLocationViewModel extends ChangeNotifier {
+class OrderAddressViewmodel extends ChangeNotifier {
   GoogleMapController? _mapController;
-  LatLng _chosenLocation = LatLng(10.3157, 123.8854);
+  LatLng _chosenLocation = const LatLng(10.3157, 123.8854);
 
   LatLng get chosenLocation => _chosenLocation;
 
@@ -26,7 +26,7 @@ class StoreLocationViewModel extends ChangeNotifier {
     }
 
     try {
-      await FirebaseFirestore.instance.collection('stores').doc(user.uid).set({
+      await FirebaseFirestore.instance.collection('orders').doc(user.uid).set({
         'latitude': _chosenLocation.latitude,
         'longitude': _chosenLocation.longitude,
       }, SetOptions(merge: true));

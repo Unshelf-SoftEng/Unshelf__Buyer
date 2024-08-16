@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:unshelf_buyer/views/chat_screen.dart';
-import 'package:unshelf_buyer/views/checkout_view.dart';
+import 'package:unshelf_buyer/views/basket_checkout_view.dart';
 import 'package:unshelf_buyer/views/store_view.dart';
 
 class BasketView extends StatefulWidget {

@@ -2,13 +2,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unshelf_buyer/views/chat_screen.dart';
+import 'package:unshelf_buyer/views/order_address_view.dart';
 import 'package:unshelf_buyer/views/order_placed_view.dart';
 
 class CheckoutView extends StatefulWidget {
   final List<Map<String, dynamic>> basketItems;
   final String? sellerId;
 
-  CheckoutView({required this.basketItems, required this.sellerId});
+  const CheckoutView({super.key, required this.basketItems, required this.sellerId});
 
   @override
   _CheckoutViewState createState() => _CheckoutViewState();
@@ -70,7 +71,7 @@ class _CheckoutViewState extends State<CheckoutView> {
         title: const Text(
           "Checkout",
           style: TextStyle(
-            color: Color.fromARGB(255, 255, 255, 255),
+            color: Colors.white,
           ),
         ),
         actions: [
@@ -126,7 +127,11 @@ class _CheckoutViewState extends State<CheckoutView> {
               trailing: const Icon(Icons.arrow_forward),
               onTap: () {
                 if (selectedOptions[sellerId] == 'For delivery') {
-                  // Navigate to Google Maps or a page where users can pin their address
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditOrderAddressView(),
+                      ));
                 } else {
                   // Show a Cupertino dialog for selecting date and time
                 }
@@ -192,9 +197,6 @@ class _CheckoutViewState extends State<CheckoutView> {
                   });
 
                   // Delete checked out items from the user's basket
-                  final basketRef = FirebaseFirestore.instance.collection('baskets').doc(user.uid);
-                  final cartItems = await basketRef.collection('cart_items').get();
-
                   for (var item in widget.basketItems) {
                     await FirebaseFirestore.instance
                         .collection('baskets')

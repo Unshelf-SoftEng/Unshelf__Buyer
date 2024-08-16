@@ -121,7 +121,7 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
   Widget build(BuildContext context) {
     super.build(context);
     if (_locationError) {
-      return Scaffold(
+      return const Scaffold(
         body: Center(
           child: Text(
             'Location permission denied or error getting location.',
@@ -138,7 +138,7 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
         title: const Text(
           "Near Me",
           style: TextStyle(
-            color: Color.fromARGB(255, 255, 255, 255),
+            color: Colors.white,
           ),
         ),
       ),

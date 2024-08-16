@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
-import 'package:unshelf_buyer/views/category_row_widget.dart';
+import 'package:unshelf_buyer/widgets/category_row_widget.dart';
 import 'package:unshelf_buyer/views/product_view.dart';
 
 class CategoryProductsPage extends StatelessWidget {
