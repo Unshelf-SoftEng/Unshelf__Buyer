@@ -2,11 +2,13 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:unshelf_buyer/views/home_view.dart';
 import 'package:unshelf_buyer/views/profile_view.dart';
 import 'package:unshelf_buyer/views/store_view.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 class MapPage extends StatefulWidget {
   @override
@@ -19,7 +21,6 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final Completer<GoogleMapController> _controller = Completer<GoogleMapController>();
   LatLng? _currentPosition;
   LatLng basePosition = const LatLng(10.30943566786076, 123.88635816441766);
   bool _isLoading = true;
@@ -35,16 +36,7 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
     final Set<Marker> markers = {};
 
     try {
-      // Fetch all documents
       final QuerySnapshot querySnapshot = await _firestore.collection('stores').get();
-
-      final Marker marker = Marker(
-        markerId: const MarkerId('your_marker'),
-        position: center,
-        infoWindow: const InfoWindow(title: 'You', snippet: 'Your current location'),
-        onTap: () {},
-      );
-      markers.add(marker);
 
       for (final QueryDocumentSnapshot doc in querySnapshot.docs) {
         final latitude = (doc.data() as dynamic)['latitude'];
@@ -55,7 +47,7 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
           continue;
         }
 
-        var distanceInMeters = await Geolocator.distanceBetween(
+        var distanceInMeters = Geolocator.distanceBetween(
           latitude,
           longitude,
           center.latitude,
@@ -63,22 +55,27 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
         );
 
         if (distanceInMeters <= 500) {
-          final MarkerId markerId = MarkerId(doc.id);
-          final Marker marker = Marker(
-            markerId: markerId,
-            position: LatLng(latitude, longitude),
-            infoWindow: InfoWindow(title: (doc.data() as dynamic)['loc_start_address'], snippet: ''),
-            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => StoreView(
-                          storeId: doc.id,
-                        )),
-              );
-            },
-          );
+          Marker marker = Marker(
+              point: LatLng(latitude, longitude),
+              width: 500,
+              height: 500,
+              rotate: true,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => StoreView(
+                              storeId: doc.id,
+                            )),
+                  );
+                },
+                child: const Icon(
+                  color: Colors.lightGreen,
+                  Icons.pin_drop_rounded,
+                  size: 50,
+                ),
+              ));
 
           markers.add(marker);
         }
@@ -156,32 +153,23 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Center(child: Text('No sellers found within the radius.'));
                 } else {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 10.0),
-                    child: SizedBox(
-                      height: 600,
-                      child: GoogleMap(
-                        mapType: MapType.terrain,
-                        initialCameraPosition: CameraPosition(
-                          target: _currentPosition!,
-                          zoom: 14.0,
-                        ),
-                        onMapCreated: (GoogleMapController controller) {
-                          _controller.complete(controller);
-                        },
-                        markers: snapshot.data!,
-                        circles: {
-                          Circle(
-                            circleId: const CircleId('1'),
-                            center: _currentPosition!,
-                            radius: 500,
-                            strokeWidth: 2,
-                            strokeColor: Colors.blue,
-                            fillColor: Colors.blue.withOpacity(0.2),
-                          )
-                        },
-                      ),
+                  return FlutterMap(
+                    options: MapOptions(
+                      initialCenter: _currentPosition!, // Center the map over London
+                      initialZoom: 20,
                     ),
+                    children: [
+                      TileLayer(
+                        // Display map tiles from any source
+                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', // OSMF's Tile Server
+                        userAgentPackageName: 'com.example.app',
+                        // And many more recommended properties!
+                      ),
+                      MarkerLayer(
+                        markers: snapshot.data!.toList(),
+                      ),
+                      CurrentLocationLayer(),
+                    ],
                   );
                 }
               },

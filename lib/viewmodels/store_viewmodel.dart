@@ -27,15 +27,9 @@ class StoreViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user!.uid)
-          .get();
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user!.uid).get();
 
-      DocumentSnapshot storeDoc = await FirebaseFirestore.instance
-          .collection('stores')
-          .doc(user!.uid)
-          .get();
+      DocumentSnapshot storeDoc = await FirebaseFirestore.instance.collection('stores').doc(user!.uid).get();
 
       if (!userDoc.exists || !storeDoc.exists) {
         errorMessage = "User profile or store not found";
@@ -70,11 +64,8 @@ class StoreViewModel extends ChangeNotifier {
 
     try {
       // Example path to fetch followers from the Firestore database
-      QuerySnapshot followersSnapshot = await FirebaseFirestore.instance
-          .collection('stores')
-          .doc(user!.uid)
-          .collection('followers')
-          .get();
+      QuerySnapshot followersSnapshot =
+          await FirebaseFirestore.instance.collection('stores').doc(user!.uid).collection('followers').get();
 
       return followersSnapshot.size;
     } catch (e) {
@@ -98,16 +89,11 @@ class StoreViewModel extends ChangeNotifier {
 
     try {
       // Example path to fetch ratings from the Firestore database
-      DocumentSnapshot ratingsSnapshot = await FirebaseFirestore.instance
-          .collection('stores')
-          .doc(user!.uid)
-          .collection('ratings')
-          .doc('average')
-          .get();
+      DocumentSnapshot ratingsSnapshot =
+          await FirebaseFirestore.instance.collection('stores').doc(user!.uid).collection('ratings').doc('average').get();
 
       // Cast the data to a Map<String, dynamic>
-      Map<String, dynamic>? data =
-          ratingsSnapshot.data() as Map<String, dynamic>?;
+      Map<String, dynamic>? data = ratingsSnapshot.data() as Map<String, dynamic>?;
 
       return data?['average'] ?? 0.0;
     } catch (e) {
@@ -120,24 +106,13 @@ class StoreViewModel extends ChangeNotifier {
   }
 
   String formatStoreSchedule(Map<String, Map<String, String>> schedule) {
-    const List<String> daysOfWeek = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday'
-    ];
+    const List<String> daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
     return daysOfWeek.map((day) {
-      Map<String, String> times =
-          schedule[day] ?? {'open': 'Closed', 'close': 'Closed'};
+      Map<String, String> times = schedule[day] ?? {'open': 'Closed', 'close': 'Closed'};
       String open = times['open'] ?? 'Closed';
       String close = times['close'] ?? 'Closed';
-      return open == 'Closed' && close == 'Closed'
-          ? '$day: Closed'
-          : '$day: $open - $close';
+      return open == 'Closed' && close == 'Closed' ? '$day: Closed' : '$day: $open - $close';
     }).join('\n');
   }
 

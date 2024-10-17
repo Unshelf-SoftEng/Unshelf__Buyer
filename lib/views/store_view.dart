@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:unshelf_buyer/viewmodels/store_viewmodel.dart';
 import 'package:unshelf_buyer/views/chat_view.dart';
-import 'package:unshelf_buyer/views/home_view.dart';
 import 'package:unshelf_buyer/views/map_view.dart';
 import 'package:unshelf_buyer/views/product_view.dart';
-import 'package:unshelf_buyer/views/profile_view.dart';
 import 'package:unshelf_buyer/views/store_address_view.dart';
 
 class StoreView extends StatefulWidget {
@@ -30,6 +30,9 @@ class _StoreViewState extends State<StoreView> {
         searchQuery = _searchController.text;
       });
     });
+
+    // Fetch store details
+    Provider.of<StoreViewModel>(context, listen: false).fetchStoreDetails();
   }
 
   @override
@@ -99,14 +102,23 @@ class _StoreViewState extends State<StoreView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance.collection('stores').doc(widget.storeId).get(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
+      body: Consumer<StoreViewModel>(
+        builder: (context, storeViewModel, child) {
+          if (storeViewModel.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          var storeData = snapshot.data!.data() as Map<String, dynamic>;
+          if (storeViewModel.errorMessage != null) {
+            return Center(
+              child: Text(storeViewModel.errorMessage!),
+            );
+          }
+
+          if (storeViewModel.storeDetails == null) {
+            return const Center(child: Text('No store data available'));
+          }
+
+          var storeDetails = storeViewModel.storeDetails!;
 
           return SingleChildScrollView(
             child: Column(
@@ -120,31 +132,31 @@ class _StoreViewState extends State<StoreView> {
                     children: [
                       CircleAvatar(
                         radius: 30,
-                        backgroundImage: CachedNetworkImageProvider(storeData['store_image_url']),
+                        backgroundImage: CachedNetworkImageProvider(storeDetails.storeImageUrl ?? ''),
                       ),
                       const SizedBox(width: 16.0),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            storeData['store_name'],
+                            storeDetails.storeName,
                             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                           const Text(
                             'Naga City, Cebu',
                             style: TextStyle(fontSize: 16, color: Colors.white),
                           ),
-                          const Row(
+                          Row(
                             children: [
-                              Icon(Icons.star, color: Colors.amber, size: 16),
+                              const Icon(Icons.star, color: Colors.amber, size: 16),
                               Text(
-                                '5.0 Rating',
-                                style: TextStyle(fontSize: 14, color: Colors.white),
+                                '${storeDetails.storeRating?.toStringAsFixed(1)} Rating',
+                                style: const TextStyle(fontSize: 14, color: Colors.white),
                               ),
-                              SizedBox(width: 10),
+                              const SizedBox(width: 10),
                               Text(
-                                '0 Followers',
-                                style: TextStyle(fontSize: 14, color: Colors.white),
+                                '${storeDetails.storeFollowers ?? 0} Followers',
+                                style: const TextStyle(fontSize: 14, color: Colors.white),
                               ),
                             ],
                           ),
@@ -154,7 +166,9 @@ class _StoreViewState extends State<StoreView> {
                       Column(
                         children: [
                           ElevatedButton(
-                            onPressed: (null), // Add functionality
+                            onPressed: () {
+                              // Add follow functionality
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF66BB6A),
                               side: const BorderSide(color: Color.fromARGB(255, 255, 255, 255), width: 1.0),
@@ -170,7 +184,7 @@ class _StoreViewState extends State<StoreView> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => ChatView(
-                                    receiverName: storeData['store_name'],
+                                    receiverName: storeDetails.storeName,
                                     receiverUserID: widget.storeId,
                                   ),
                                 ),
@@ -186,7 +200,7 @@ class _StoreViewState extends State<StoreView> {
                             child: const Text('Chat', style: TextStyle(color: Colors.black)),
                           ),
                         ],
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -202,7 +216,7 @@ class _StoreViewState extends State<StoreView> {
                           fullscreenDialog: true,
                         ),
                       );
-                    }, // Add functionality
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF66BB6A),
                       shape: RoundedRectangleBorder(
@@ -221,7 +235,6 @@ class _StoreViewState extends State<StoreView> {
                 ),
 
                 // Category Listings: Offers, Grocery, Fruits, Veggies, Baked
-                // Logic to filter and show categories with products
                 for (var category in ['offers', 'grocery', 'fruits', 'veggies', 'baked'])
                   StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
@@ -231,13 +244,13 @@ class _StoreViewState extends State<StoreView> {
                         .snapshots(),
                     builder: (context, snapshot) {
                       if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                        return const SizedBox.shrink(); // Skip this section if no products
+                        return const SizedBox.shrink(); // Skip if no products
                       }
 
                       var productDocs = snapshot.data!.docs;
 
                       return Container(
-                        height: 220, // Increased height to fit product card
+                        height: 220,
                         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -278,47 +291,6 @@ class _StoreViewState extends State<StoreView> {
           );
         },
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        onTap: (index) => _onItemTapped(context, index),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.location_on),
-            label: 'Near Me',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
     );
-  }
-
-  void _onItemTapped(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomeView()),
-        );
-        break;
-      case 1:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => MapPage()),
-        );
-        break;
-      case 2:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => ProfileView()),
-        );
-        break;
-    }
   }
 }

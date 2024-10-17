@@ -1,14 +1,14 @@
 // views/edit_store_location_view.dart
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
-import 'package:unshelf_buyer/viewmodels/order_address_viewmodel.dart';
+import 'package:unshelf_buyer/viewmodels/store_viewmodel.dart';
 
 class StoreAddressView extends StatelessWidget {
   double latitude = 10.3157;
   double longitude = 123.8854;
-
-  GoogleMapController? _mapController;
 
   @override
   Widget build(BuildContext context) {
@@ -24,46 +24,37 @@ class StoreAddressView extends StatelessWidget {
           ),
         ),
       ),
-      body: GoogleMap(
-        initialCameraPosition: CameraPosition(
-          target: latitude != null && longitude != null
+      body: FlutterMap(
+        options: MapOptions(
+          initialCenter: latitude != null && longitude != null
               ? LatLng(
                   latitude!,
                   longitude!,
                 )
-              : const LatLng(10.3521, 103.8198),
-          zoom: 15,
+              : LatLng(latitude, longitude), // Center the map over London
+          initialZoom: 15,
         ),
-        onMapCreated: setMapController,
-        onTap: (LatLng location) {
-          latitude = location.latitude;
-          longitude = location.longitude;
-          debugPrint("LOCATION:  $latitude $longitude");
-          // update location!
-          // viewModel.updateLocation(location);
-        },
-        markers: {
-          Marker(
-            markerId: const MarkerId('chosen_location'),
-            position: LatLng(
-              latitude ?? 10.3092615,
-              longitude ?? 123.8863528,
-            ),
-            draggable: true,
-            onDragEnd: (LatLng newPosition) {
-              latitude = newPosition.latitude;
-              longitude = newPosition.longitude;
-              debugPrint("POSITION:  $latitude $longitude");
-              // viewModel.updateLocation(newPosition);
-              // insert update location logic here
-            },
+        children: [
+          TileLayer(
+            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', // OSMF's Tile Server
+            userAgentPackageName: 'com.example.app',
           ),
-        },
+          MarkerLayer(
+            markers: [
+              Marker(
+                point: LatLng(latitude, longitude),
+                rotate: true,
+                child: const Icon(
+                  color: Colors.lightGreen,
+                  Icons.pin_drop_rounded,
+                  size: 50,
+                ),
+              ),
+            ],
+          ),
+          CurrentLocationLayer(),
+        ],
       ),
     );
-  }
-
-  setMapController(GoogleMapController controller) {
-    _mapController = controller;
   }
 }
