@@ -407,26 +407,4 @@ class _HomeViewState extends State<HomeView> {
       ),
     );
   }
-
-  // double _calculateTimeLeftPercentage(Timestamp expiryDate) {
-  //   final DateTime now = DateTime.now();
-  //   final Duration totalDuration = expiryDate.toDate().difference(DateTime.now());
-  //   final Duration remainingDuration = expiryDate.toDate().difference(DateTime.now());
-
-  //   return remainingDuration.inSeconds / totalDuration.inSeconds;
-  // }
-
-  // String _formatTimeLeft(Timestamp expiryDate) {
-  //   final Duration timeLeft = expiryDate.toDate().difference(DateTime.now());
-  //   final int hours = timeLeft.inHours;
-  //   final int minutes = timeLeft.inMinutes % 60;
-  //   final int seconds = timeLeft.inSeconds % 60;
-
-  //   return '$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-  // }
-
-  // String _calculateTimeLeft(Timestamp expiryDate) {
-  //   final timeLeft = expiryDate.toDate().difference(DateTime.now());
-  //   return '${timeLeft.inHours}h ${timeLeft.inMinutes % 60}m';
-  // }
 }

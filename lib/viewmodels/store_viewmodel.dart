@@ -8,11 +8,11 @@ class StoreViewModel extends ChangeNotifier {
   bool isLoading = true;
   String? errorMessage;
 
-  StoreViewModel() {
-    fetchStoreDetails();
+  StoreViewModel(String storeId) {
+    fetchStoreDetails(storeId);
   }
 
-  Future<void> fetchStoreDetails() async {
+  Future<void> fetchStoreDetails(String storeId) async {
     // Check if the user is logged in
     User? user = FirebaseAuth.instance.currentUser;
 
@@ -29,16 +29,13 @@ class StoreViewModel extends ChangeNotifier {
     try {
       DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user!.uid).get();
 
-      DocumentSnapshot storeDoc = await FirebaseFirestore.instance.collection('stores').doc(user!.uid).get();
+      DocumentSnapshot storeDoc = await FirebaseFirestore.instance.collection('stores').doc(storeId).get();
 
       if (!userDoc.exists || !storeDoc.exists) {
         errorMessage = "User profile or store not found";
         storeDetails = null;
       } else {
         storeDetails = StoreModel.fromSnapshot(userDoc, storeDoc);
-        print(storeDetails!.storeName);
-        print(storeDetails!.storeImageUrl);
-        print(storeDetails!.storeSchedule);
         storeDetails!.storeFollowers = await fetchStoreFollowers();
 
         notifyListeners();

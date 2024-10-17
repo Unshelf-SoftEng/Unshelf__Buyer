@@ -2,15 +2,25 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:unshelf_buyer/viewmodels/home_view_model.dart';
+import 'package:unshelf_buyer/viewmodels/order_viewmodel.dart';
 import 'package:unshelf_buyer/viewmodels/store_viewmodel.dart';
 import 'package:unshelf_buyer/views/home_view.dart';
 import 'package:unshelf_buyer/views/login_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // load env
   await dotenv.load(fileName: ".env");
+
+  // assign publishable key to flutter_stripe
+  Stripe.publishableKey = dotenv.env['stripePublishableKey'] ?? '';
+
+  // initialize firebase app
   await Firebase.initializeApp(
     options: FirebaseOptions(
       apiKey: dotenv.env['FIREBASE_API_KEY'] ?? '',
@@ -24,8 +34,9 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => StoreViewModel()), // StoreViewModel Provider
-        // Add other providers here if needed
+        ChangeNotifierProvider(create: (_) => StoreViewModel("2gxma4nHjhcHsOgDDDarlyeEvy12")), //
+        ChangeNotifierProvider(create: (_) => OrderViewModel()), // OrderViewModel Provider
+        // Add more providers here
       ],
       child: MyApp(),
     ),
@@ -47,6 +58,7 @@ class MyApp extends StatelessWidget {
         textTheme:
             GoogleFonts.jostTextTheme(Theme.of(context).textTheme).apply(bodyColor: const Color.fromARGB(255, 56, 102, 65)),
       ),
+      debugShowCheckedModeBanner: false,
       home: FirebaseAuth.instance.currentUser != null ? HomeView() : LoginView(),
     );
   }

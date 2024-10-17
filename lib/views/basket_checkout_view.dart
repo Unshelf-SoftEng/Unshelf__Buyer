@@ -1,9 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 import 'package:unshelf_buyer/views/chat_screen.dart';
 import 'package:unshelf_buyer/views/order_address_view.dart';
+import 'package:unshelf_buyer/views/order_payment_view.dart';
 import 'package:unshelf_buyer/views/order_placed_view.dart';
+import 'package:unshelf_buyer/viewmodels/order_viewmodel.dart';
 
 class CheckoutView extends StatefulWidget {
   final List<Map<String, dynamic>> basketItems;
@@ -62,6 +65,7 @@ class _CheckoutViewState extends State<CheckoutView> {
     final sellerId = widget.sellerId;
     final displayedStoreName = storeName ?? 'Loading...';
     final displayedStoreImageUrl = storeImageUrl;
+    final orderViewModel = Provider.of<OrderViewModel>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -182,31 +186,27 @@ class _CheckoutViewState extends State<CheckoutView> {
               onPressed: () async {
                 User? user = FirebaseAuth.instance.currentUser;
                 if (user != null) {
-                  // Add order to orders collection
-                  await FirebaseFirestore.instance.collection('orders').add({
-                    'buyer_id': user.uid,
-                    'created_at': DateTime.now(),
-                    'order_items': widget.basketItems
-                        .map((item) => {
-                              'product_id': item['productId'],
-                              'quantity': item['quantity'],
-                            })
-                        .toList(),
-                    'seller_id': widget.sellerId,
-                    'status': 'Pending',
-                  });
+                  try {
+                    // Initiate the payment process via ViewModel
+                    bool paymentSuccess = await orderViewModel.processOrderAndPayment(
+                      user.uid,
+                      widget.basketItems,
+                      widget.sellerId!,
+                      totalAmount,
+                    );
 
-                  // Delete checked out items from the user's basket
-                  for (var item in widget.basketItems) {
-                    await FirebaseFirestore.instance
-                        .collection('baskets')
-                        .doc(user.uid)
-                        .collection('cart_items')
-                        .doc(item['productId'])
-                        .delete();
+                    debugPrint("WHAT THE HELL IS THIS?${paymentSuccess}");
+                    // Only navigate to OrderPlacedView if the payment is successful
+                    if (paymentSuccess) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => OrderPlacedView()),
+                      );
+                    }
+                  } catch (e) {
+                    // Handle payment error (e.g., show an error dialog)
+                    print('Payment error: $e');
                   }
-
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => OrderPlacedView()));
                 }
               },
               style: ElevatedButton.styleFrom(

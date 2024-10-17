@@ -1,14 +1,13 @@
-// views/edit_store_location_view.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:provider/provider.dart';
-import 'package:unshelf_buyer/viewmodels/store_viewmodel.dart';
 
 class StoreAddressView extends StatelessWidget {
-  double latitude = 10.3157;
-  double longitude = 123.8854;
+  final double latitude;
+  final double longitude;
+
+  const StoreAddressView({required this.latitude, required this.longitude});
 
   @override
   Widget build(BuildContext context) {
@@ -26,12 +25,10 @@ class StoreAddressView extends StatelessWidget {
       ),
       body: FlutterMap(
         options: MapOptions(
-          initialCenter: latitude != null && longitude != null
-              ? LatLng(
-                  latitude!,
-                  longitude!,
-                )
-              : LatLng(latitude, longitude), // Center the map over London
+          initialCenter: LatLng(
+            latitude!,
+            longitude!,
+          ), // Center the map over London
           initialZoom: 15,
         ),
         children: [
@@ -42,7 +39,7 @@ class StoreAddressView extends StatelessWidget {
           MarkerLayer(
             markers: [
               Marker(
-                point: LatLng(latitude, longitude),
+                point: LatLng(latitude!, longitude!),
                 rotate: true,
                 child: const Icon(
                   color: Colors.lightGreen,

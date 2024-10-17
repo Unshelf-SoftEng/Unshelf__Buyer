@@ -34,7 +34,7 @@ class ProductViewModel extends ChangeNotifier {
   bool _errorFound = false;
   bool get errorFound => _errorFound;
 
-  ProductViewModel({required this.productId}) {
+  ProductViewModel({this.productId}) {
     if (productId != null) fetchProductData();
   }
 
@@ -43,10 +43,7 @@ class ProductViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final productDoc = await FirebaseFirestore.instance
-          .collection('products')
-          .doc(productId)
-          .get();
+      final productDoc = await FirebaseFirestore.instance.collection('products').doc(productId).get();
 
       if (productDoc.exists) {
         final product = ProductModel.fromSnapshot(productDoc);
@@ -72,15 +69,14 @@ class ProductViewModel extends ChangeNotifier {
         }
       }
     } catch (e) {
-      // Handle errors
+      print('Error fetching product data: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> loadImageFromUrl(String imageUrl, bool isMainImage,
-      {int? index}) async {
+  Future<void> loadImageFromUrl(String imageUrl, bool isMainImage, {int? index}) async {
     try {
       final response = await http.get(Uri.parse(imageUrl));
       if (response.statusCode == 200) {
@@ -117,96 +113,31 @@ class ProductViewModel extends ChangeNotifier {
 
     if (_mainImageData != null && _isMainImageNew) {
       try {
-        final mainImageRef = FirebaseStorage.instance.ref().child(
-            'product_images/main_${DateTime.now().millisecondsSinceEpoch}.jpg');
+        final mainImageRef =
+            FirebaseStorage.instance.ref().child('product_images/main_${DateTime.now().millisecondsSinceEpoch}.jpg');
         await mainImageRef.putData(_mainImageData!);
         final mainImageUrl = await mainImageRef.getDownloadURL();
         downloadUrls.add(mainImageUrl);
       } catch (e) {
-        // Handle error
+        print('Error uploading main image: $e');
       }
     }
 
     for (int i = 0; i < _additionalImageDataList.length; i++) {
       if (_additionalImageDataList[i] != null && _isAdditionalImageNewList[i]) {
         try {
-          final additionalImageRef = FirebaseStorage.instance.ref().child(
-              'product_images/additional_${DateTime.now().millisecondsSinceEpoch}_$i.jpg');
+          final additionalImageRef =
+              FirebaseStorage.instance.ref().child('product_images/additional_${DateTime.now().millisecondsSinceEpoch}_$i.jpg');
           await additionalImageRef.putData(_additionalImageDataList[i]!);
           final additionalImageUrl = await additionalImageRef.getDownloadURL();
           downloadUrls.add(additionalImageUrl);
         } catch (e) {
-          // Handle error
+          print('Error uploading additional image: $e');
         }
       }
     }
 
     return downloadUrls;
-  }
-
-  Future<void> addOrUpdateProductImages() async {
-    if (_mainImageData == null) {
-      _errorFound = true;
-      notifyListeners();
-      return;
-    }
-
-    try {
-      _isLoading = true;
-      notifyListeners();
-
-      User? user = FirebaseAuth.instance.currentUser;
-      List<String> imageUrls = await uploadImages();
-
-      final mainImageUrl = imageUrls.isNotEmpty ? imageUrls.removeAt(0) : null;
-
-      await FirebaseFirestore.instance
-          .collection('products')
-          .doc(productId)
-          .update({
-        'main_image_url': mainImageUrl,
-        'additional_image_urls': imageUrls,
-      });
-    } on FirebaseAuthException catch (e) {
-      // Handle authentication error
-    } catch (e) {
-      // Handle other errors
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  void deleteMainImage() {
-    _mainImageData = null;
-    _isMainImageNew = false;
-    notifyListeners();
-  }
-
-  void deleteAdditionalImage(int index) {
-    _additionalImageDataList[index] = null;
-    _isAdditionalImageNewList[index] = false;
-    // Shift images to the left
-    for (int i = index; i < _additionalImageDataList.length - 1; i++) {
-      _additionalImageDataList[i] = _additionalImageDataList[i + 1];
-      _isAdditionalImageNewList[i] = _isAdditionalImageNewList[i + 1];
-    }
-    _additionalImageDataList[_additionalImageDataList.length - 1] = null;
-    _isAdditionalImageNewList[_additionalImageDataList.length - 1] = false;
-    notifyListeners();
-  }
-
-  Future<void> selectExpiryDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-    if (picked != null) {
-      expiryDateController.text = "${picked.toLocal()}".split(' ')[0];
-      notifyListeners();
-    }
   }
 
   Future<void> addOrUpdateProduct(BuildContext context) async {
@@ -229,14 +160,11 @@ class ProductViewModel extends ChangeNotifier {
               'expiryDate': DateTime.parse(expiryDateController.text),
               'discount': int.parse(discountController.text),
               'mainImageUrl': images[0],
-              'additionalImageUrls': images.sublist(1),
+              'additionalImageUrls': images.sublist(1).take(10).toList(), // Ensure only 10 additional images
               'isListed': true,
             });
           } else {
-            await FirebaseFirestore.instance
-                .collection('products')
-                .doc(productId)
-                .update({
+            await FirebaseFirestore.instance.collection('products').doc(productId).update({
               'name': nameController.text,
               'description': descriptionController.text,
               'price': double.parse(priceController.text),
@@ -251,11 +179,36 @@ class ProductViewModel extends ChangeNotifier {
           // Handle user not logged in
         }
       } catch (e) {
-        // Handle errors
+        print('Error adding or updating product: $e');
       } finally {
         _isLoading = false;
         notifyListeners();
       }
+    }
+  }
+
+  void deleteMainImage() {
+    _mainImageData = null;
+    _isMainImageNew = false;
+    notifyListeners();
+  }
+
+  void deleteAdditionalImage(int index) {
+    _additionalImageDataList[index] = null;
+    _isAdditionalImageNewList[index] = false;
+    notifyListeners();
+  }
+
+  Future<void> selectExpiryDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null) {
+      expiryDateController.text = "${picked.toLocal()}".split(' ')[0];
+      notifyListeners();
     }
   }
 

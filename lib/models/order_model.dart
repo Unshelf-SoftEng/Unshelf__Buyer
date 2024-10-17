@@ -28,19 +28,20 @@ class OrderModel {
   String buyerName;
   Timestamp? completionDate;
   String? pickUpCode;
+  bool is_paid;
 
-  OrderModel({
-    required this.id,
-    required this.buyerId,
-    required this.items,
-    required this.status,
-    required this.createdAt,
-    this.totalPrice = 0,
-    this.products = const [],
-    this.buyerName = '',
-    this.completionDate,
-    this.pickUpCode = '',
-  });
+  OrderModel(
+      {required this.id,
+      required this.buyerId,
+      required this.items,
+      required this.status,
+      required this.createdAt,
+      this.totalPrice = 0,
+      this.products = const [],
+      this.buyerName = '',
+      this.completionDate,
+      this.pickUpCode = '',
+      this.is_paid = false});
 
   factory OrderModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
@@ -77,18 +78,12 @@ class OrderModel {
       productRefs.add(item.productId);
     }
 
-    final productSnapshots =
-        await Future.wait(productRefs.map((ref) => ref.get()));
+    final productSnapshots = await Future.wait(productRefs.map((ref) => ref.get()));
 
-    final products = productSnapshots
-        .map((snapshot) => ProductModel.fromSnapshot(snapshot))
-        .toList();
+    final products = productSnapshots.map((snapshot) => ProductModel.fromSnapshot(snapshot)).toList();
 
     // Fetch the buyer's name
-    await FirebaseFirestore.instance
-        .doc(orderModel.buyerId.path)
-        .get()
-        .then((buyerSnapshot) {
+    await FirebaseFirestore.instance.doc(orderModel.buyerId.path).get().then((buyerSnapshot) {
       orderModel.buyerName = buyerSnapshot.data()!['name'] as String;
     });
 

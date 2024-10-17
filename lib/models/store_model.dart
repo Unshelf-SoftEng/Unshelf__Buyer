@@ -6,8 +6,8 @@ class StoreModel {
   final String name;
   final String phoneNumber;
   final String storeName;
-  final double? storeLongitude;
-  final double? storeLatitude;
+  final double storeLongitude;
+  final double storeLatitude;
   final Map<String, Map<String, String>>? storeSchedule;
   final String? storeImageUrl;
   double? storeRating;
@@ -20,8 +20,8 @@ class StoreModel {
     required this.phoneNumber,
     required this.storeName,
     this.storeSchedule,
-    this.storeLongitude,
-    this.storeLatitude,
+    required this.storeLongitude,
+    required this.storeLatitude,
     this.storeImageUrl,
     this.storeRating,
     this.storeFollowers,
@@ -46,8 +46,8 @@ class StoreModel {
           ),
         ),
       ),
-      storeLongitude: (storeData['longitude'] as num?)?.toDouble(),
-      storeLatitude: (storeData['latitude'] as num?)?.toDouble(),
+      storeLongitude: (storeData['longitude'] as num?)!.toDouble(),
+      storeLatitude: (storeData['latitude'] as num?)!.toDouble(),
       storeImageUrl: storeData['store_image_url'],
       storeRating: 4.5, // Handle this dynamically!
       storeFollowers: 1200, // Handle this dynamically!

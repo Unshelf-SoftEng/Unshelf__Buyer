@@ -26,7 +26,7 @@ class ProductModel implements ItemModel {
     this.additionalImageUrls,
   });
 
-  // Factory method to create StoreModel from Firebase document snapshot
+  // Factory method to create ProductModel from Firebase document snapshot
   factory ProductModel.fromSnapshot(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return ProductModel(
@@ -44,16 +44,17 @@ class ProductModel implements ItemModel {
     );
   }
 
-  // Method to convert StoreModel to Json
+  // Method to convert ProductModel to Json
   Map<String, dynamic> toJson() {
     return {
-      'productId': productId,
       'name': name,
       'description': description,
       'price': price,
       'stock': stock,
       'expiryDate': expiryDate.toIso8601String(),
       'discount': discount,
+      'mainImageUrl': mainImageUrl,
+      'additionalImageUrls': additionalImageUrls,
     };
   }
 
@@ -69,6 +70,9 @@ class ProductModel implements ItemModel {
           : DateTime.now(),
       discount: json['discount'] ?? 0,
       mainImageUrl: json['mainImageUrl'] ?? '',
+      additionalImageUrls: (json['additionalImageUrls'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
   }
 }

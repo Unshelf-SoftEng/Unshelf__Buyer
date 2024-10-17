@@ -162,16 +162,16 @@ class _RegisterViewState extends State<RegisterView> {
                   return null;
                 },
               ),
-              TextFormField(
-                controller: _storeNameController,
-                decoration: const InputDecoration(labelText: 'Store Name'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your store name';
-                  }
-                  return null;
-                },
-              ),
+              // TextFormField(
+              //   controller: _storeNameController,
+              //   decoration: const InputDecoration(labelText: 'Store Name'),
+              //   validator: (value) {
+              //     if (value == null || value.isEmpty) {
+              //       return 'Please enter your store name';
+              //     }
+              //     return null;
+              //   },
+              // ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _register,

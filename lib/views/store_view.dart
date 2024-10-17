@@ -32,7 +32,7 @@ class _StoreViewState extends State<StoreView> {
     });
 
     // Fetch store details
-    Provider.of<StoreViewModel>(context, listen: false).fetchStoreDetails();
+    Provider.of<StoreViewModel>(context, listen: false).fetchStoreDetails(widget.storeId);
   }
 
   @override
@@ -209,13 +209,21 @@ class _StoreViewState extends State<StoreView> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => StoreAddressView(),
-                          fullscreenDialog: true,
-                        ),
-                      );
+                      if (storeDetails.storeLatitude != null && storeDetails.storeLongitude != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => StoreAddressView(
+                              latitude: storeDetails.storeLatitude!,
+                              longitude: storeDetails.storeLongitude!,
+                            ),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Location data is not available')),
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF66BB6A),

@@ -54,6 +54,9 @@ dependencies:
   flutter_map_location_marker: ^9.0.0
   latlong2: ^0.9.1
   vector_map_tiles: ^8.0.0
+  geocoding: ^3.0.0
+  flutter_stripe: ^11.2.0
+  pay: ^2.0.0
 
 dev_dependencies:
   flutter_test:
