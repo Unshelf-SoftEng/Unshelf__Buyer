@@ -49,8 +49,8 @@ class StoreModel {
       storeLongitude: (storeData['longitude'] as num?)!.toDouble(),
       storeLatitude: (storeData['latitude'] as num?)!.toDouble(),
       storeImageUrl: storeData['store_image_url'],
-      storeRating: 4.5, // Handle this dynamically!
-      storeFollowers: 1200, // Handle this dynamically!
+      storeRating: 0.0,
+      storeFollowers: storeData['follower_count'] != null ? storeData['follower_count'] : 0,
     );
   }
 }

@@ -143,7 +143,7 @@ class _StoreViewState extends State<StoreView> {
                             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                           const Text(
-                            'Naga City, Cebu',
+                            'Cebu City, Cebu',
                             style: TextStyle(fontSize: 16, color: Colors.white),
                           ),
                           Row(
