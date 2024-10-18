@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:unshelf_buyer/views/home_view.dart';
@@ -16,20 +17,48 @@ class _LoginViewState extends State<LoginView> {
   Future<void> _Login() async {
     if (_formKey.currentState!.validate()) {
       try {
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
+        UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: _emailController.text,
           password: _passwordController.text,
         );
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sign in successful')),
-        );
+        // Fetch user role from Firestore
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).get();
+        
+        if (userDoc.exists) {
+          // Check if the user is banned
+           bool banned= userDoc['isBanned'];
+          if (banned == true) {
+            await FirebaseAuth.instance.signOut(); // Sign out the banned user
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Your account is banned. Please contact support.')),
+            );
+            return;
+          }
+          String role = userDoc['type'];
+          if (role == 'buyer') {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Sign in successful')),
+            );
 
-        // Redirect to home page
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomeView()),
-        );
+            // Redirect to home page
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomeView()),
+            );
+          } else {
+            await FirebaseAuth.instance.signOut();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('User has a different role')),
+            );
+          }
+        } else {
+          await FirebaseAuth.instance.signOut();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('User not found in database.')),
+          );
+        }
+        
       } on FirebaseAuthException catch (e) {
         String message;
         if (e.code == 'user-not-found') {
