@@ -184,9 +184,9 @@ class _BasketViewState extends State<BasketView> {
                                 selectedProductIds.add(productId);
                                 selectedSellerId = sellerId;
                               } else {
-                                // Notify user
+                                // Notify user they can only order from one store
                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                  content: Text('You can only select products from one store at a time.'),
+                                  content: Text('You can only order from one store at a time.'),
                                 ));
                               }
                             } else {

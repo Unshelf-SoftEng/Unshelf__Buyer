@@ -33,7 +33,7 @@ class _HomeViewState extends State<HomeView> {
         toolbarHeight: 60,
         title: Container(
           height: 40,
-          decoration: BoxDecoration(
+          decoration: BoxDecoration(  
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
           ),
@@ -250,7 +250,7 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget _buildCategories() {
-    final categories = ['Offers', 'Grocery', 'Fruits', 'Vegetables', 'Baked Goods', 'Meals'];
+    final categories = ['Grocery', 'Fruits', 'Vegetables', 'Baked Goods', 'Meals'];
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
