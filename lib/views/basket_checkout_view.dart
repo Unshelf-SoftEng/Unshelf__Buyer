@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:unshelf_buyer/views/chat_screen.dart';
 import 'package:unshelf_buyer/views/order_placed_view.dart';
@@ -22,6 +23,8 @@ class _CheckoutViewState extends State<CheckoutView> {
   String storeName = '';
   String storeImageUrl = '';
   TimeOfDay? selectedPickupTime;
+  String selectedPaymentMethod = 'Cash'; // Default to 'Cash'
+  String orderId = '';
 
   @override
   void initState() {
@@ -29,6 +32,7 @@ class _CheckoutViewState extends State<CheckoutView> {
     fetchStoreDetails();
     calculateTotalAmount();
     setDefaultPickupTime();
+    generateOrderId();
   }
 
   void fetchStoreDetails() async {
@@ -54,18 +58,34 @@ class _CheckoutViewState extends State<CheckoutView> {
   }
 
   void setDefaultPickupTime() {
-    // Get the current time + 30 minutes
     final now = DateTime.now();
     final newTime = now.add(const Duration(minutes: 30));
-
-    // Manually convert to 12-hour format
-    final hour = newTime.hour % 12 == 0 ? 12 : newTime.hour % 12; // Ensures 12-hour format
+    final hour = newTime.hour % 12 == 0 ? 12 : newTime.hour % 12;
     final minute = newTime.minute;
-    final period = newTime.hour >= 12 ? DayPeriod.pm : DayPeriod.am;
 
     setState(() {
       selectedPickupTime = TimeOfDay(hour: hour, minute: minute);
     });
+  }
+
+  Future<void> generateOrderId() async {
+    // Get current date in YYYYMMDD format
+    String currentDate = DateFormat('yyyyMMdd').format(DateTime.now());
+
+    // Reference to the Firebase collection where orders are stored
+    CollectionReference ordersRef = FirebaseFirestore.instance.collection('orders');
+
+    // Query to count orders with the current date
+    QuerySnapshot querySnapshot = await ordersRef.where('orderDate', isEqualTo: currentDate).get();
+
+    // Get the number of orders already made today
+    int orderCount = querySnapshot.size;
+
+    // Generate the next order number by incrementing the order count
+    String nextOrderNumber = (orderCount + 1).toString().padLeft(3, '0');
+
+    // Combine date and order number to create the order ID
+    orderId = '$currentDate-$nextOrderNumber';
   }
 
   Future<void> _selectPickupTime() async {
@@ -81,28 +101,70 @@ class _CheckoutViewState extends State<CheckoutView> {
     }
   }
 
+  void selectPaymentMethod(String method) {
+    setState(() {
+      selectedPaymentMethod = method;
+    });
+  }
+
   Future<void> _confirmOrder() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
-        final orderViewModel = Provider.of<OrderViewModel>(context, listen: false);
+        if (selectedPaymentMethod == 'Card') {
+          final orderViewModel = Provider.of<OrderViewModel>(context, listen: false);
+          bool paymentSuccess = await orderViewModel.processOrderAndPayment(
+            user.uid,
+            widget.basketItems,
+            widget.sellerId!,
+            totalAmount,
+            selectedPickupTime?.format(context),
+          );
 
-        bool paymentSuccess = await orderViewModel.processOrderAndPayment(
-          user.uid,
-          widget.basketItems,
-          widget.sellerId!,
-          totalAmount,
-          selectedPickupTime?.format(context),
-        );
+          if (paymentSuccess) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => OrderPlacedView()),
+            );
+          }
+        } else {
+          await FirebaseFirestore.instance.collection('orders').add({
+            'buyerId': user.uid,
+            'completedAt': null,
+            'createdAt': DateTime.now(),
+            'isPaid': false,
+            'orderId': orderId,
+            'orderItems': widget.basketItems
+                .map((item) => {
+                      'product_id': item['productId'],
+                      'quantity': item['quantity'],
+                    })
+                .toList(),
+            'sellerId': widget.sellerId,
+            'status': "Pending",
+            'totalPrice': totalAmount,
+            'pickupTime': selectedPickupTime?.format(context),
+          }).then((docRef) {
+            debugPrint("Order created with ID: ${docRef.id}");
+          });
 
-        if (paymentSuccess) {
+          // Delete checked out items from the user's basket
+          for (var item in widget.basketItems) {
+            await FirebaseFirestore.instance
+                .collection('baskets')
+                .doc(user.uid)
+                .collection('cart_items')
+                .doc(item['productId'])
+                .delete();
+          }
+
           Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => OrderPlacedView()),
           );
         }
       } catch (e) {
-        print('Payment error: $e');
+        print('Order confirmation error: $e');
       }
     }
   }
@@ -114,18 +176,12 @@ class _CheckoutViewState extends State<CheckoutView> {
         backgroundColor: const Color(0xFF6E9E57),
         elevation: 0,
         toolbarHeight: 60,
-        title: const Text(
-          "Checkout",
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text("Checkout", style: TextStyle(color: Colors.white)),
         actions: [
           IconButton(
             icon: const CircleAvatar(
               backgroundColor: Colors.white,
-              child: Icon(
-                Icons.message,
-                color: Color(0xFF6E9E57),
-              ),
+              child: Icon(Icons.message, color: Color(0xFF6E9E57)),
             ),
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen()));
@@ -156,14 +212,9 @@ class _CheckoutViewState extends State<CheckoutView> {
                   onPressed: _selectPickupTime,
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFF6E9E57)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20.0),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
                   ),
-                  child: const Text(
-                    'Pickup Time',
-                    style: TextStyle(color: Color(0xFF6E9E57)),
-                  ),
+                  child: const Text('Pickup Time', style: TextStyle(color: Color(0xFF6E9E57))),
                 ),
                 const SizedBox(width: 10),
                 if (selectedPickupTime != null)
@@ -171,6 +222,16 @@ class _CheckoutViewState extends State<CheckoutView> {
                     selectedPickupTime!.format(context),
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+            child: Row(
+              children: [
+                _buildPaymentButton('Cash'),
+                const SizedBox(width: 10),
+                _buildPaymentButton('Card'),
               ],
             ),
           ),
@@ -216,19 +277,32 @@ class _CheckoutViewState extends State<CheckoutView> {
               onPressed: _confirmOrder,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF6A994E),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               ),
               child: const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                child: Text(
-                  "CONFIRM",
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
+                child: Text("CONFIRM", style: TextStyle(fontSize: 16, color: Colors.white)),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPaymentButton(String method) {
+    final bool isSelected = selectedPaymentMethod == method;
+    return Expanded(
+      child: OutlinedButton(
+        onPressed: () => selectPaymentMethod(method),
+        style: OutlinedButton.styleFrom(
+          backgroundColor: isSelected ? const Color(0xFF6E9E57) : Colors.transparent,
+          side: const BorderSide(color: Color(0xFF6E9E57)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+        ),
+        child: Text(
+          method,
+          style: TextStyle(color: isSelected ? Colors.white : const Color(0xFF6E9E57)),
         ),
       ),
     );
