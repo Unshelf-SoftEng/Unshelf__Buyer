@@ -179,7 +179,7 @@ class OrderViewModel extends ChangeNotifier {
 
   // New method to handle the full order process
   Future<bool> processOrderAndPayment(
-      String buyerId, List<Map<String, dynamic>> basketItems, String sellerId, double totalAmount) async {
+      String buyerId, List<Map<String, dynamic>> basketItems, String sellerId, double totalAmount, String? pickupTime) async {
     try {
       // Add order to Firestore
       DocumentReference orderRef = await FirebaseFirestore.instance.collection('orders').add({
@@ -193,6 +193,7 @@ class OrderViewModel extends ChangeNotifier {
             .toList(),
         'seller_id': sellerId,
         'status': 'Pending',
+        'pickup_time': pickupTime,
       });
 
       // Process the payment

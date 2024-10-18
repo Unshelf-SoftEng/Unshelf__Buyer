@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:unshelf_buyer/views/chat_screen.dart';
-import 'package:unshelf_buyer/views/order_address_view.dart';
-import 'package:unshelf_buyer/views/order_payment_view.dart';
 import 'package:unshelf_buyer/views/order_placed_view.dart';
 import 'package:unshelf_buyer/viewmodels/order_viewmodel.dart';
 
@@ -20,16 +18,17 @@ class CheckoutView extends StatefulWidget {
 
 class _CheckoutViewState extends State<CheckoutView> {
   Map<String, Map<String, dynamic>> storeDetails = {};
-  Map<String, String> selectedOptions = {};
   double totalAmount = 0.0;
   String storeName = '';
   String storeImageUrl = '';
+  TimeOfDay? selectedPickupTime;
 
   @override
   void initState() {
     super.initState();
     fetchStoreDetails();
     calculateTotalAmount();
+    setDefaultPickupTime();
   }
 
   void fetchStoreDetails() async {
@@ -54,19 +53,62 @@ class _CheckoutViewState extends State<CheckoutView> {
     totalAmount = widget.basketItems.fold(0, (sum, item) => sum + item['price'] * item['quantity']);
   }
 
-  void onDeliveryOrPickupChanged(String sellerId, String value) {
+  void setDefaultPickupTime() {
+    // Get the current time + 30 minutes
+    final now = DateTime.now();
+    final newTime = now.add(const Duration(minutes: 30));
+
+    // Manually convert to 12-hour format
+    final hour = newTime.hour % 12 == 0 ? 12 : newTime.hour % 12; // Ensures 12-hour format
+    final minute = newTime.minute;
+    final period = newTime.hour >= 12 ? DayPeriod.pm : DayPeriod.am;
+
     setState(() {
-      selectedOptions[sellerId] = value;
+      selectedPickupTime = TimeOfDay(hour: hour, minute: minute);
     });
+  }
+
+  Future<void> _selectPickupTime() async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: selectedPickupTime ?? TimeOfDay.now(),
+    );
+
+    if (pickedTime != null) {
+      setState(() {
+        selectedPickupTime = pickedTime;
+      });
+    }
+  }
+
+  Future<void> _confirmOrder() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        final orderViewModel = Provider.of<OrderViewModel>(context, listen: false);
+
+        bool paymentSuccess = await orderViewModel.processOrderAndPayment(
+          user.uid,
+          widget.basketItems,
+          widget.sellerId!,
+          totalAmount,
+          selectedPickupTime?.format(context),
+        );
+
+        if (paymentSuccess) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => OrderPlacedView()),
+          );
+        }
+      } catch (e) {
+        print('Payment error: $e');
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final sellerId = widget.sellerId;
-    final displayedStoreName = storeName ?? 'Loading...';
-    final displayedStoreImageUrl = storeImageUrl;
-    final orderViewModel = Provider.of<OrderViewModel>(context);
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF6E9E57),
@@ -74,9 +116,7 @@ class _CheckoutViewState extends State<CheckoutView> {
         toolbarHeight: 60,
         title: const Text(
           "Checkout",
-          style: TextStyle(
-            color: Colors.white,
-          ),
+          style: TextStyle(color: Colors.white),
         ),
         actions: [
           IconButton(
@@ -88,10 +128,7 @@ class _CheckoutViewState extends State<CheckoutView> {
               ),
             ),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ChatScreen()),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen()));
             },
           ),
         ],
@@ -104,74 +141,67 @@ class _CheckoutViewState extends State<CheckoutView> {
             child: Row(
               children: [
                 CircleAvatar(
-                  backgroundImage: displayedStoreImageUrl.isNotEmpty ? NetworkImage(displayedStoreImageUrl) : null,
+                  backgroundImage: storeImageUrl.isNotEmpty ? NetworkImage(storeImageUrl) : null,
                 ),
                 const SizedBox(width: 10),
-                Text(displayedStoreName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(storeName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ],
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: DropdownButton<String>(
-              value: selectedOptions[sellerId] ?? 'For delivery',
-              items: <String>['For delivery', 'For pickup'].map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              onChanged: (value) => onDeliveryOrPickupChanged(sellerId!, value!),
-            ),
-          ),
-          Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: ListTile(
-              title: Text(selectedOptions[sellerId] == 'For delivery' ? 'Delivery Details' : 'Pickup Details'),
-              trailing: const Icon(Icons.arrow_forward),
-              onTap: () {
-                if (selectedOptions[sellerId] == 'For delivery') {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EditOrderAddressView(),
-                      ));
-                } else {
-                  // Show a Cupertino dialog for selecting date and time
-                }
-              },
+            child: Row(
+              children: [
+                OutlinedButton(
+                  onPressed: _selectPickupTime,
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFF6E9E57)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                    ),
+                  ),
+                  child: const Text(
+                    'Pickup Time',
+                    style: TextStyle(color: Color(0xFF6E9E57)),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                if (selectedPickupTime != null)
+                  Text(
+                    selectedPickupTime!.format(context),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+              ],
             ),
           ),
           Expanded(
-            child: SizedBox(
-              height: 200.0,
-              child: ListView.builder(
-                itemCount: widget.basketItems.length,
-                itemBuilder: (context, index) {
-                  final item = widget.basketItems[index];
-
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      children: [
-                        Image.network(item['mainImageUrl'], width: 80, height: 80, fit: BoxFit.cover),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(item['name'], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                              Text('₱${item['price']} x ${item['quantity']}', style: const TextStyle(color: Colors.grey)),
-                            ],
-                          ),
+            child: ListView.builder(
+              itemCount: widget.basketItems.length,
+              itemBuilder: (context, index) {
+                final item = widget.basketItems[index];
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      Image.network(item['mainImageUrl'], width: 80, height: 80, fit: BoxFit.cover),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(item['name'], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                            Text('₱${item['price']} x ${item['quantity']}', style: const TextStyle(color: Colors.grey)),
+                          ],
                         ),
-                        Text('₱${(item['price'] * item['quantity']).toStringAsFixed(2)}',
-                            style: const TextStyle(fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  );
-                },
-              ),
+                      ),
+                      Text(
+                        '₱${(item['price'] * item['quantity']).toStringAsFixed(2)}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -183,34 +213,9 @@ class _CheckoutViewState extends State<CheckoutView> {
             Text("Total: ₱$totalAmount", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const Spacer(),
             ElevatedButton(
-              onPressed: () async {
-                User? user = FirebaseAuth.instance.currentUser;
-                if (user != null) {
-                  try {
-                    // Initiate the payment process via ViewModel
-                    bool paymentSuccess = await orderViewModel.processOrderAndPayment(
-                      user.uid,
-                      widget.basketItems,
-                      widget.sellerId!,
-                      totalAmount,
-                    );
-
-                    debugPrint("WHAT THE HELL IS THIS?${paymentSuccess}");
-                    // Only navigate to OrderPlacedView if the payment is successful
-                    if (paymentSuccess) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => OrderPlacedView()),
-                      );
-                    }
-                  } catch (e) {
-                    // Handle payment error (e.g., show an error dialog)
-                    print('Payment error: $e');
-                  }
-                }
-              },
+              onPressed: _confirmOrder,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 106, 153, 78),
+                backgroundColor: const Color(0xFF6A994E),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -219,10 +224,7 @@ class _CheckoutViewState extends State<CheckoutView> {
                 padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                 child: Text(
                   "CONFIRM",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.white),
                 ),
               ),
             ),
