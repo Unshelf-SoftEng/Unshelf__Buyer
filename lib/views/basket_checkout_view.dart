@@ -128,6 +128,9 @@ class _CheckoutViewState extends State<CheckoutView> {
             );
           }
         } else {
+          debugPrint("Initiating order creation");
+          debugPrint(
+              "buyerId: ${user.uid} createdAt: {$DateTime.now()}  \n orderId: ${orderId} sellerId: ${widget.sellerId} \n totalPrice ${totalAmount} \n pickupTime: ${selectedPickupTime?.format(context)}");
           await FirebaseFirestore.instance.collection('orders').add({
             'buyerId': user.uid,
             'completedAt': null,
@@ -136,7 +139,7 @@ class _CheckoutViewState extends State<CheckoutView> {
             'orderId': orderId,
             'orderItems': widget.basketItems
                 .map((item) => {
-                      'product_id': item['productId'],
+                      'productId': item['productId'],
                       'quantity': item['quantity'],
                     })
                 .toList(),

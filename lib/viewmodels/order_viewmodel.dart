@@ -80,13 +80,13 @@ class OrderViewModel extends ChangeNotifier {
   // Function to initiate payment process
   Future<void> makePayment(String amount) async {
     try {
-      paymentIntentData = await createPaymentIntent(amount, 'USD');
+      paymentIntentData = await createPaymentIntent(amount, 'PHP');
 
       // Initialize payment sheet
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: paymentIntentData!['client_secret'],
-          merchantDisplayName: 'Your App Name',
+          merchantDisplayName: 'Unshelf',
           googlePay: const PaymentSheetGooglePay(
             merchantCountryCode: 'US',
             testEnv: true,
@@ -95,10 +95,7 @@ class OrderViewModel extends ChangeNotifier {
       );
 
       // Display payment sheet
-
-      debugPrint("BEFORE PAYMENT?");
       await displayPaymentSheet();
-      debugPrint("HELLO?");
     } catch (error) {
       paymentIntentData = null;
       print('Error in makePayment: $error');
@@ -111,7 +108,7 @@ class OrderViewModel extends ChangeNotifier {
     String secretKey = dotenv.env['stripeSecretKey'] ?? '';
     try {
       Map<String, dynamic> body = {
-        'amount': (double.parse(amount).floor()).toString(), // Amount in cents
+        'amount': (double.parse(amount).floor() * 100).toString(), // Amount in cents
         'currency': currency,
       };
 

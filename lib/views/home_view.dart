@@ -33,7 +33,7 @@ class _HomeViewState extends State<HomeView> {
         toolbarHeight: 60,
         title: Container(
           height: 40,
-          decoration: BoxDecoration(  
+          decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
           ),
@@ -361,6 +361,7 @@ class _HomeViewState extends State<HomeView> {
         );
       },
       child: Card(
+        color: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.0),
           side: const BorderSide(color: Color(0xA7C957), width: 10),
@@ -372,7 +373,7 @@ class _HomeViewState extends State<HomeView> {
               children: [
                 CachedNetworkImage(
                   imageUrl: data['mainImageUrl'],
-                  height: 100,
+                  height: 120,
                   width: double.infinity,
                   fit: BoxFit.cover,
                 ),
@@ -392,7 +393,7 @@ class _HomeViewState extends State<HomeView> {
               ],
             ),
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
               child: Text(
                 data['name'],
                 style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
@@ -400,7 +401,7 @@ class _HomeViewState extends State<HomeView> {
             ),
             Text(
               '  PHP${data['price'].toStringAsFixed(2)}',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
+              style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold, color: Colors.green),
             ),
           ],
         ),

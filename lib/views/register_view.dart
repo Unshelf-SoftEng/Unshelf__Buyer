@@ -26,6 +26,9 @@ class _RegisterViewState extends State<RegisterView> {
         'name': name,
         'email': user.email,
         'phone_number': phoneNumber,
+        'profileImageUrl':
+            "https://firebasestorage.googleapis.com/v0/b/unshelf-d4567.appspot.com/o/user_avatars%2FDvVHPPSWMtV7GBFjSW1jymsv1op1.png?alt=media&token=084a7a1a-f962-4348-9bb7-7d1ef3476856",
+        'type': 'buyer'
       });
 
       await FirebaseFirestore.instance.collection('stores').doc(user.uid).set({

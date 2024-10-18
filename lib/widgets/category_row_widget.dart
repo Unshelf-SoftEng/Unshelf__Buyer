@@ -55,7 +55,10 @@ class _CategoryIconsRowState extends State<CategoryIconsRow> {
                   const SizedBox(width: 6.0),
                   Text(
                     category.name,
-                    style: TextStyle(fontSize: 12.0, color: _pressedIndex == index ? Colors.white : const Color(0xFF6E9E57)),
+                    style: TextStyle(
+                        fontSize: 12.0,
+                        fontWeight: FontWeight.bold,
+                        color: _pressedIndex == index ? Colors.white : const Color(0xFF6E9E57)),
                   ),
                 ],
               ),

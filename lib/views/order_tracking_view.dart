@@ -13,16 +13,21 @@ class OrderTrackingView extends StatelessWidget {
     final orderData = orderSnapshot.data();
 
     if (orderData != null) {
-      final storeSnapshot = await FirebaseFirestore.instance.collection('stores').doc(orderData['seller_id']).get();
+      debugPrint("order data isn't null");
+      final storeSnapshot = await FirebaseFirestore.instance.collection('stores').doc(orderData['sellerId']).get();
       final storeData = storeSnapshot.data();
 
-      final List<Map<String, dynamic>> orderItemsDetails = [];
+      final List<Map<String?, dynamic>> orderItemsDetails = [];
 
-      for (var item in orderData['order_items']) {
-        final productSnapshot = await FirebaseFirestore.instance.collection('products').doc(item['product_id']).get();
+      for (var item in orderData['orderItems']) {
+        debugPrint("umm? ${orderId} ${orderData}");
+        final productSnapshot = await FirebaseFirestore.instance.collection('products').doc(item['productId']).get();
         final productData = productSnapshot.data();
 
+        debugPrint("Is this where the issue is?${productData} + $item");
+        debugPrint("Or iss this where the issue is?");
         if (productData != null) {
+          debugPrint("Our productdata isn't null: ${productData} + $item");
           orderItemsDetails.add({
             'name': productData['name'],
             'price': productData['price'],
@@ -30,21 +35,26 @@ class OrderTrackingView extends StatelessWidget {
             'quantity': item['quantity'],
             'quantifier': productData['quantifier'],
           });
+          debugPrint("DDid we add it? $orderItemsDetails");
+        } else {
+          debugPrint("it's null...");
         }
+
+        debugPrint("Or isss this where the issue is?");
       }
 
       // Here, we ensure that the total is returned as an int by using .toInt()
       final int total = orderItemsDetails.fold<num>(0, (sum, item) => sum + item['price'] * item['quantity']).toInt();
 
       return {
-        'store_name': storeData?['store_name'] ?? '',
-        'store_image_url': storeData?['store_image_url'] ?? '',
-        'order_items': orderItemsDetails,
-        'fulfillment_method': orderData['fulfillment_method'],
+        'storeName': storeData?['store_name'] ?? '',
+        'storeImageUrl': storeData?['store_image_url'] ?? '',
+        'orderItems': orderItemsDetails,
         'status': orderData['status'],
-        'is_paid': orderData['is_paid'],
-        'created_at': orderData['created_at'].toDate(),
-        'total': total,
+        'isPaid': orderData['isPaid'],
+        // 'created_at': orderData['createdAt'].toDate(),
+        'totalPrice': orderData['totalPrice'],
+        'pickupTime': orderData['pickupTime']
       };
     }
     return {};
@@ -52,6 +62,7 @@ class OrderTrackingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("huh?");
     final FirebaseAuth _auth = FirebaseAuth.instance;
     return Scaffold(
       appBar: AppBar(
@@ -66,9 +77,10 @@ class OrderTrackingView extends StatelessWidget {
         ),
       ),
       body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('orders').where('buyer_id', isEqualTo: _auth.currentUser!.uid).snapshots(),
+        stream: FirebaseFirestore.instance.collection('orders').where('buyerId', isEqualTo: _auth.currentUser!.uid).snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) {
+            debugPrint("no data? why? ${_auth.currentUser!.uid}");
             return const Center(child: CircularProgressIndicator());
           }
           final orders = snapshot.data?.docs ?? [];
@@ -77,21 +89,25 @@ class OrderTrackingView extends StatelessWidget {
             itemCount: orders.length,
             itemBuilder: (context, index) {
               final orderId = orders[index].id;
-              return FutureBuilder<Map<String, dynamic>>(
+              debugPrint("hi${orderId}");
+              return FutureBuilder<Map<String?, dynamic>>(
                 future: fetchOrderDetails(orderId),
                 builder: (context, orderSnapshot) {
                   if (!orderSnapshot.hasData) {
                     return const Center(child: CircularProgressIndicator());
                   }
 
+                  debugPrint("Issue is inside listview");
                   final orderDetails = orderSnapshot.data!;
-                  final storeName = orderDetails['store_name'];
-                  final storeImageUrl = orderDetails['store_image_url'];
-                  final fulfillmentMethod = orderDetails['fulfillment_method'];
+                  final storeName = orderDetails['storeName'];
+                  final storeImageUrl = orderDetails['storeImageUrl'];
+                  final isPaid = orderDetails['isPaid'];
                   final status = orderDetails['status'];
-                  final total = orderDetails['total'];
-                  final orderItems = orderDetails['order_items'];
+                  final total = orderDetails['totalPrice'];
+                  final pickupTime = orderDetails['pickupTime'];
+                  final orderItems = orderDetails['orderItems'];
 
+                  debugPrint("Issue is not inside listview");
                   return Card(
                     margin: const EdgeInsets.all(8.0),
                     child: Column(
@@ -104,14 +120,14 @@ class OrderTrackingView extends StatelessWidget {
                           ),
                           title: Text(storeName),
                           subtitle: Text(
-                            fulfillmentMethod == "delivery" ? "For delivery" : "For Pickup",
+                            isPaid ? "Paid" : "To be Paid",
                           ),
                           trailing: const Icon(Icons.arrow_forward_ios),
                         ),
                         const Divider(),
                         ListTile(
                           title: const Text("Delivery details"),
-                          subtitle: Text("Status: $status\nEstimated delivery time: 12:00"),
+                          subtitle: Text("Status: $status\nPickup Time: $pickupTime"),
                         ),
                         const Divider(),
                         ...orderItems.map<Widget>((item) {
