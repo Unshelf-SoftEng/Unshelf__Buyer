@@ -5,8 +5,8 @@ import 'package:unshelf_buyer/views/home_view.dart';
 import 'package:unshelf_buyer/views/map_view.dart';
 import 'package:unshelf_buyer/views/profile_view.dart';
 
-class OrderTrackingView extends StatelessWidget {
-  const OrderTrackingView({Key? key}) : super(key: key);
+class OrderHistoryView extends StatelessWidget {
+  const OrderHistoryView({Key? key}) : super(key: key);
 
   Future<Map<String, dynamic>> fetchOrderDetails(String orderId) async {
     final orderSnapshot = await FirebaseFirestore.instance.collection('orders').doc(orderId).get();
@@ -122,7 +122,7 @@ class OrderTrackingView extends StatelessWidget {
                         ListTile(
                           title: const Text("Delivery details"),
                           subtitle: Text(
-                              "        Status: $status\nPickup Time: $pickupTime     Pickup Code: $pickupCode\nOrdered On: $createdAt"),
+                              "Status: $status\nPickup Time: $pickupTime     Pickup Code: $pickupCode\nOrdered On: $createdAt"),
                         ),
                         const Divider(),
                         ...orderItems.map<Widget>((item) {

@@ -165,10 +165,10 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
                         userAgentPackageName: 'com.example.app',
                         // And many more recommended properties!
                       ),
+                      CurrentLocationLayer(),
                       MarkerLayer(
                         markers: snapshot.data!.toList(),
-                      ),
-                      CurrentLocationLayer(),
+                      )
                     ],
                   );
                 }
