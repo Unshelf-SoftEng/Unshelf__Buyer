@@ -62,7 +62,7 @@ class ProfileView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(top: 10.0, left: 16.0, right: 16.0),
+                    padding: const EdgeInsets.only(top: 50.0, left: 16.0, right: 16.0),
                     child: Row(
                       children: [
                         CircleAvatar(

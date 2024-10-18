@@ -54,11 +54,11 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
           center.longitude,
         );
 
-        if (distanceInMeters <= 500) {
+        if (distanceInMeters <= 5000) {
           Marker marker = Marker(
               point: LatLng(latitude, longitude),
-              width: 500,
-              height: 500,
+              width: 5000,
+              height: 5000,
               rotate: true,
               child: GestureDetector(
                 onTap: () {
@@ -155,7 +155,7 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
                 } else {
                   return FlutterMap(
                     options: MapOptions(
-                      initialCenter: _currentPosition!, // Center the map over London
+                      initialCenter: _currentPosition!, // Center the map over user's current position
                       initialZoom: 20,
                     ),
                     children: [

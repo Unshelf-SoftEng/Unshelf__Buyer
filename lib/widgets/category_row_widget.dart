@@ -8,7 +8,7 @@ class CategoryIconsRow extends StatefulWidget {
 }
 
 class _CategoryIconsRowState extends State<CategoryIconsRow> {
-  int _pressedIndex = -1; // Track which button is pressed
+  int _pressedIndex = -1;
 
   final List<CategoryItem> categories = [
     CategoryItem('Grocery', 'assets/images/category_grocery.svg', 'Grocery'),
@@ -22,16 +22,16 @@ class _CategoryIconsRowState extends State<CategoryIconsRow> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal, // Enable horizontal scrolling
+        scrollDirection: Axis.horizontal,
         child: Row(
           children: categories.asMap().entries.map((entry) {
             int index = entry.key;
             CategoryItem category = entry.value;
 
             return GestureDetector(
-              onTapDown: (_) => setState(() => _pressedIndex = index), // Button pressed
-              onTapUp: (_) => setState(() => _pressedIndex = -1), // Button released
-              onTapCancel: () => setState(() => _pressedIndex = -1), // In case of cancellation
+              onTapDown: (_) => setState(() => _pressedIndex = index),
+              onTapUp: (_) => setState(() => _pressedIndex = -1),
+              onTapCancel: () => setState(() => _pressedIndex = -1),
               onTap: () {
                 Navigator.push(
                   context,
@@ -45,18 +45,18 @@ class _CategoryIconsRowState extends State<CategoryIconsRow> {
                 decoration: BoxDecoration(
                   color: _pressedIndex == index ? const Color(0xFF6E9E57) : Colors.transparent,
                   border: Border.all(color: const Color(0xFF6E9E57)),
-                  borderRadius: BorderRadius.circular(20.0), // Adjusted button radius
+                  borderRadius: BorderRadius.circular(20.0),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0), // Increased padding
-                margin: const EdgeInsets.symmetric(horizontal: 6.0), // Slightly more margin between buttons
+                padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+                margin: const EdgeInsets.symmetric(horizontal: 2.0),
                 child: Row(
                   children: [
-                    SvgPicture.asset(category.iconPath, height: 18.0, width: 18.0), // Slightly larger icon
-                    const SizedBox(width: 6.0), // Increased spacing between icon and text
+                    SvgPicture.asset(category.iconPath, height: 18.0, width: 18.0),
+                    const SizedBox(width: 6.0),
                     Text(
                       category.name,
                       style: TextStyle(
-                          fontSize: 11.0, // Slightly larger text
+                          fontSize: 13.0,
                           fontWeight: FontWeight.bold,
                           color: _pressedIndex == index ? Colors.white : const Color(0xFF6E9E57)),
                     ),
