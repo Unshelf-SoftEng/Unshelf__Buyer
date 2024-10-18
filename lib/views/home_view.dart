@@ -250,24 +250,29 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget _buildCategories() {
-    final categories = ['Grocery', 'Fruits', 'Vegetables', 'Baked Goods', 'Meals'];
+    final categories = ['Grocery', 'Fruits', 'Vegetables', 'Baked Goods'];
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: CarouselSlider(
-        options: CarouselOptions(
-          height: 80.0,
-          viewportFraction: 0.3,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: categories.map((category) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0), // Reduced spacing between items
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.category, size: 16), // Reduced icon size
+                  Text(
+                    category,
+                    style: const TextStyle(fontSize: 9), // Reduced text size
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
         ),
-        items: categories.map((category) {
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.category, size: 40),
-              Text(category, style: const TextStyle(fontSize: 12)),
-            ],
-          );
-        }).toList(),
       ),
     );
   }

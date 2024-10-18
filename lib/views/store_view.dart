@@ -126,7 +126,7 @@ class _StoreViewState extends State<StoreView> {
               children: [
                 // Store Header
                 Container(
-                  padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 30.0, bottom: 8.0),
+                  padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 30.0, bottom: 10.0),
                   color: const Color(0xFF6E9E57),
                   child: Row(
                     children: [
@@ -140,23 +140,23 @@ class _StoreViewState extends State<StoreView> {
                         children: [
                           Text(
                             storeDetails.storeName,
-                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                           const Text(
                             'Cebu City, Cebu',
-                            style: TextStyle(fontSize: 16, color: Colors.white),
+                            style: TextStyle(fontSize: 12, color: Colors.white),
                           ),
                           Row(
                             children: [
                               const Icon(Icons.star, color: Colors.amber, size: 16),
                               Text(
                                 '${storeDetails.storeRating?.toStringAsFixed(1)} Rating',
-                                style: const TextStyle(fontSize: 14, color: Colors.white),
+                                style: const TextStyle(fontSize: 12, color: Colors.white),
                               ),
                               const SizedBox(width: 10),
                               Text(
                                 '${storeDetails.storeFollowers ?? 0} Followers',
-                                style: const TextStyle(fontSize: 14, color: Colors.white),
+                                style: const TextStyle(fontSize: 12, color: Colors.white),
                               ),
                             ],
                           ),

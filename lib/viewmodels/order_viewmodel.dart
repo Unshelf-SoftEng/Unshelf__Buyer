@@ -179,35 +179,35 @@ class OrderViewModel extends ChangeNotifier {
       String buyerId, List<Map<String, dynamic>> basketItems, String sellerId, double totalAmount, String? pickupTime) async {
     try {
       // Add order to Firestore
-      DocumentReference orderRef = await FirebaseFirestore.instance.collection('orders').add({
-        'buyer_id': buyerId,
-        'created_at': DateTime.now(),
-        'order_items': basketItems
-            .map((item) => {
-                  'product_id': item['productId'],
-                  'quantity': item['quantity'],
-                })
-            .toList(),
-        'seller_id': sellerId,
-        'status': 'Pending',
-        'pickup_time': pickupTime,
-      });
+      // DocumentReference orderRef = await FirebaseFirestore.instance.collection('orders').add({
+      //   'buyer_id': buyerId,
+      //   'created_at': DateTime.now(),
+      //   'order_items': basketItems
+      //       .map((item) => {
+      //             'product_id': item['productId'],
+      //             'quantity': item['quantity'],
+      //           })
+      //       .toList(),
+      //   'seller_id': sellerId,
+      //   'status': 'Pending',
+      //   'pickup_time': pickupTime,
+      // });
 
       // Process the payment
       await makePayment(totalAmount.toString());
 
       // If payment is successful, mark order as paid
-      await orderRef.update({'is_paid': true, 'status': 'Paid'});
+      // await orderRef.update({'is_paid': true, 'status': 'Paid'});
 
       // Delete items from the basket after successful payment
-      for (var item in basketItems) {
-        await FirebaseFirestore.instance
-            .collection('baskets')
-            .doc(buyerId)
-            .collection('cart_items')
-            .doc(item['productId'])
-            .delete();
-      }
+      // for (var item in basketItems) {
+      //   await FirebaseFirestore.instance
+      //       .collection('baskets')
+      //       .doc(buyerId)
+      //       .collection('cart_items')
+      //       .doc(item['productId'])
+      //       .delete();
+      // }
 
       return true;
     } catch (e) {

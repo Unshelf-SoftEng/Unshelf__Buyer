@@ -113,6 +113,37 @@ class _CheckoutViewState extends State<CheckoutView> {
       try {
         if (selectedPaymentMethod == 'Card') {
           final orderViewModel = Provider.of<OrderViewModel>(context, listen: false);
+
+          await FirebaseFirestore.instance.collection('orders').add({
+            'buyerId': user.uid,
+            'completedAt': null,
+            'createdAt': DateTime.now(),
+            'isPaid': true,
+            'orderId': orderId,
+            'orderItems': widget.basketItems
+                .map((item) => {
+                      'productId': item['productId'],
+                      'quantity': item['quantity'],
+                    })
+                .toList(),
+            'sellerId': widget.sellerId,
+            'status': "Pending",
+            'totalPrice': totalAmount,
+            'pickupTime': selectedPickupTime?.format(context),
+          }).then((docRef) {
+            debugPrint("Order created with ID: ${docRef.id}");
+          });
+
+          // Delete checked out items from the user's basket
+          for (var item in widget.basketItems) {
+            await FirebaseFirestore.instance
+                .collection('baskets')
+                .doc(user.uid)
+                .collection('cart_items')
+                .doc(item['productId'])
+                .delete();
+          }
+
           bool paymentSuccess = await orderViewModel.processOrderAndPayment(
             user.uid,
             widget.basketItems,
@@ -120,13 +151,6 @@ class _CheckoutViewState extends State<CheckoutView> {
             totalAmount,
             selectedPickupTime?.format(context),
           );
-
-          if (paymentSuccess) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => OrderPlacedView()),
-            );
-          }
         } else {
           debugPrint("Initiating order creation");
           debugPrint(
