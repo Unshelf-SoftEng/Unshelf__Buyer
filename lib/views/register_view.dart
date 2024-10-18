@@ -26,6 +26,8 @@ class _RegisterViewState extends State<RegisterView> {
         'name': name,
         'email': user.email,
         'phone_number': phoneNumber,
+        'type': 'buyer',
+        'isBanned': false,
       });
 
       await FirebaseFirestore.instance.collection('stores').doc(user.uid).set({
