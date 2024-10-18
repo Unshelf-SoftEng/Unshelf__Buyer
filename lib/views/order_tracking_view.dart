@@ -13,21 +13,16 @@ class OrderTrackingView extends StatelessWidget {
     final orderData = orderSnapshot.data();
 
     if (orderData != null) {
-      debugPrint("order data isn't null");
       final storeSnapshot = await FirebaseFirestore.instance.collection('stores').doc(orderData['sellerId']).get();
       final storeData = storeSnapshot.data();
 
       final List<Map<String?, dynamic>> orderItemsDetails = [];
 
       for (var item in orderData['orderItems']) {
-        debugPrint("umm? ${orderId} ${orderData}");
         final productSnapshot = await FirebaseFirestore.instance.collection('products').doc(item['productId']).get();
         final productData = productSnapshot.data();
 
-        debugPrint("Is this where the issue is?${productData} + $item");
-        debugPrint("Or iss this where the issue is?");
         if (productData != null) {
-          debugPrint("Our productdata isn't null: ${productData} + $item");
           orderItemsDetails.add({
             'name': productData['name'],
             'price': productData['price'],
@@ -35,12 +30,7 @@ class OrderTrackingView extends StatelessWidget {
             'quantity': item['quantity'],
             'quantifier': productData['quantifier'],
           });
-          debugPrint("DDid we add it? $orderItemsDetails");
-        } else {
-          debugPrint("it's null...");
-        }
-
-        debugPrint("Or isss this where the issue is?");
+        } else {}
       }
 
       // Here, we ensure that the total is returned as an int by using .toInt()
@@ -52,7 +42,7 @@ class OrderTrackingView extends StatelessWidget {
         'orderItems': orderItemsDetails,
         'status': orderData['status'],
         'isPaid': orderData['isPaid'],
-        // 'created_at': orderData['createdAt'].toDate(),
+        'createdAt': orderData['createdAt'].toDate(),
         'totalPrice': orderData['totalPrice'],
         'pickupTime': orderData['pickupTime']
       };
@@ -62,7 +52,6 @@ class OrderTrackingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("huh?");
     final FirebaseAuth _auth = FirebaseAuth.instance;
     return Scaffold(
       appBar: AppBar(
@@ -80,7 +69,6 @@ class OrderTrackingView extends StatelessWidget {
         stream: FirebaseFirestore.instance.collection('orders').where('buyerId', isEqualTo: _auth.currentUser!.uid).snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) {
-            debugPrint("no data? why? ${_auth.currentUser!.uid}");
             return const Center(child: CircularProgressIndicator());
           }
           final orders = snapshot.data?.docs ?? [];
@@ -89,7 +77,6 @@ class OrderTrackingView extends StatelessWidget {
             itemCount: orders.length,
             itemBuilder: (context, index) {
               final orderId = orders[index].id;
-              debugPrint("hi${orderId}");
               return FutureBuilder<Map<String?, dynamic>>(
                 future: fetchOrderDetails(orderId),
                 builder: (context, orderSnapshot) {
@@ -106,6 +93,7 @@ class OrderTrackingView extends StatelessWidget {
                   final total = orderDetails['totalPrice'];
                   final pickupTime = orderDetails['pickupTime'];
                   final orderItems = orderDetails['orderItems'];
+                  final createdAt = orderDetails['createdAt'];
 
                   debugPrint("Issue is not inside listview");
                   return Card(
@@ -127,7 +115,7 @@ class OrderTrackingView extends StatelessWidget {
                         const Divider(),
                         ListTile(
                           title: const Text("Delivery details"),
-                          subtitle: Text("Status: $status\nPickup Time: $pickupTime"),
+                          subtitle: Text("Status: $status\nPickup Time: $pickupTime\nOrdered On: $createdAt"),
                         ),
                         const Divider(),
                         ...orderItems.map<Widget>((item) {
