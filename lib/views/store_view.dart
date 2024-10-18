@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -20,6 +21,7 @@ class StoreView extends StatefulWidget {
 class _StoreViewState extends State<StoreView> {
   late TextEditingController _searchController;
   String searchQuery = "";
+  bool isFollowing = false;
 
   @override
   void initState() {
@@ -31,6 +33,7 @@ class _StoreViewState extends State<StoreView> {
       });
     });
 
+    _checkIfFollow();
     // Fetch store details
     Provider.of<StoreViewModel>(context, listen: false).fetchStoreDetails(widget.storeId);
   }
@@ -39,6 +42,46 @@ class _StoreViewState extends State<StoreView> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _checkIfFollow() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      var followDoc =
+          await FirebaseFirestore.instance.collection('users').doc(user.uid).collection('following').doc(widget.storeId).get();
+
+      setState(() {
+        isFollowing = followDoc.exists;
+      });
+    }
+  }
+
+  Future<void> _toggleFollow() async {
+    debugPrint("toggleFollow: entering");
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      debugPrint("toggleFollow: inside if block");
+      var followRef = FirebaseFirestore.instance.collection('users').doc(user.uid).collection('following').doc(widget.storeId);
+      var storeDoc = await FirebaseFirestore.instance.collection('stores').doc(widget.storeId).get();
+      var storeRef = FirebaseFirestore.instance.collection('stores').doc(widget.storeId);
+
+      if (isFollowing) {
+        await followRef.delete();
+        await storeRef.update({'follower_count': storeDoc.data()!['follower_count'] - 1});
+      } else {
+        await followRef.set({'added_at': FieldValue.serverTimestamp()});
+        await storeRef.update({'follower_count': storeDoc.data()!['follower_count'] + 1});
+      }
+
+      debugPrint("toggleFollow: finished nested if");
+      setState(() {
+        isFollowing = !isFollowing;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(isFollowing ? 'You are now following the store!' : 'You have stopped following the store.')),
+      );
+    }
   }
 
   Widget _buildProductCard(Map<String, dynamic> data, String productId, bool isBundle, BuildContext context) {
@@ -166,17 +209,25 @@ class _StoreViewState extends State<StoreView> {
                       Column(
                         children: [
                           ElevatedButton(
-                            onPressed: () {
-                              // Add follow functionality
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF66BB6A),
-                              side: const BorderSide(color: Color.fromARGB(255, 255, 255, 255), width: 1.0),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20.0),
-                              ),
-                            ),
-                            child: const Text('Follow', style: TextStyle(color: Colors.white)),
+                            onPressed: _toggleFollow,
+                            style: isFollowing
+                                ? ElevatedButton.styleFrom(
+                                    backgroundColor: const Color.fromARGB(255, 105, 120, 106),
+                                    side: const BorderSide(color: Color.fromARGB(255, 255, 255, 255), width: 1.0),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20.0),
+                                    ),
+                                  )
+                                : ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF66BB6A),
+                                    side: const BorderSide(color: Color.fromARGB(255, 255, 255, 255), width: 1.0),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20.0),
+                                    ),
+                                  ),
+                            child: isFollowing
+                                ? const Text('Unfollow', style: TextStyle(color: Colors.white))
+                                : const Text('Follow', style: TextStyle(color: Colors.white)),
                           ),
                           ElevatedButton(
                             onPressed: () {
