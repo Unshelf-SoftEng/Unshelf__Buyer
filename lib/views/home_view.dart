@@ -157,7 +157,6 @@ class _HomeViewState extends State<HomeView> {
               _buildCarouselBanner(),
               const SizedBox(),
               _buildProductCarousel(products),
-              const SizedBox(),
               _buildBundleDealsSection(),
             ],
           ),
@@ -219,7 +218,7 @@ class _HomeViewState extends State<HomeView> {
               ),
             ),
           ),
-          SizedBox(height: 5),
+          const SizedBox(height: 5),
           Text(
             data['name'],
             style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
@@ -271,7 +270,7 @@ class _HomeViewState extends State<HomeView> {
       final searchResults = await _firestore
           .collection('products')
           .where('name', isGreaterThanOrEqualTo: query)
-          .where('name', isLessThanOrEqualTo: query + '\uf8ff')
+          .where('name', isLessThanOrEqualTo: '$query\uf8ff')
           .get();
 
       setState(() {
