@@ -131,56 +131,68 @@ class _CheckoutViewState extends State<CheckoutView> {
     if (user != null) {
       try {
         // Create the order document in Firestore
-        await FirebaseFirestore.instance.collection('orders').add({
-          'buyerId': user.uid,
-          'completedAt': null,
-          'createdAt': DateTime.now(),
-          'isPaid': selectedPaymentMethod == 'Card',
-          'orderId': orderId,
-          'orderItems': widget.basketItems
-              .map((item) => {
-                    'batchId': item['batchId'],
-                    'quantity': item['quantity'],
-                    'price': item['batchPrice'],
-                  })
-              .toList(),
-          'sellerId': widget.sellerId,
-          'status': "Pending",
-          'totalPrice': totalAmount,
-          'pickupTime': Timestamp.fromDate(selectedPickupDateTime!),
-          'pointsDiscount': usePoints ? points : 0
-        });
+        if (selectedPaymentMethod == 'Card') {
+          final orderViewModel = Provider.of<OrderViewModel>(context, listen: false);
+          bool paymentSuccess = await orderViewModel.processOrderAndPayment(
+              user.uid, widget.basketItems, widget.sellerId!, orderId, totalAmount, selectedPickupDateTime!, usePoints, points);
+          if (paymentSuccess) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => OrderPlacedView()),
+            );
+          }
+        } else {
+          await FirebaseFirestore.instance.collection('orders').add({
+            'buyerId': user.uid,
+            'completedAt': null,
+            'createdAt': DateTime.now(),
+            'isPaid': selectedPaymentMethod == 'Card',
+            'orderId': orderId,
+            'orderItems': widget.basketItems
+                .map((item) => {
+                      'batchId': item['batchId'],
+                      'quantity': item['quantity'],
+                      'price': item['batchPrice'],
+                    })
+                .toList(),
+            'sellerId': widget.sellerId,
+            'status': "Pending",
+            'totalPrice': totalAmount,
+            'pickupTime': Timestamp.fromDate(selectedPickupDateTime!),
+            'pointsDiscount': usePoints ? points : 0
+          });
 
-        // Process each item in the basket
-        for (var item in widget.basketItems) {
-          String batchId = item['batchId'];
-          int quantity = item['quantity'];
+          // Process each item in the basket
+          for (var item in widget.basketItems) {
+            String batchId = item['batchId'];
+            int quantity = item['quantity'];
 
-          // Fetch the batch document
-          DocumentSnapshot batchSnapshot = await FirebaseFirestore.instance.collection('batches').doc(batchId).get();
+            // Fetch the batch document
+            DocumentSnapshot batchSnapshot = await FirebaseFirestore.instance.collection('batches').doc(batchId).get();
 
-          if (batchSnapshot.exists) {
-            Map<String, dynamic>? batchData = batchSnapshot.data() as Map<String, dynamic>?;
-            int currentStock = batchData?['stock'] ?? 0;
+            if (batchSnapshot.exists) {
+              Map<String, dynamic>? batchData = batchSnapshot.data() as Map<String, dynamic>?;
+              int currentStock = batchData?['stock'] ?? 0;
 
-            // Update the stock for the batch
-            int newStock = currentStock - quantity;
-            if (newStock < 0) {
-              throw Exception('Insufficient stock for batch $batchId');
+              // Update the stock for the batch
+              int newStock = currentStock - quantity;
+              if (newStock < 0) {
+                throw Exception('Insufficient stock for batch $batchId');
+              }
+
+              await FirebaseFirestore.instance.collection('batches').doc(batchId).update({'stock': newStock});
             }
 
-            await FirebaseFirestore.instance.collection('batches').doc(batchId).update({'stock': newStock});
+            // Remove the item from the user's cart
+            await FirebaseFirestore.instance.collection('baskets').doc(user.uid).collection('cart_items').doc(batchId).delete();
           }
 
-          // Remove the item from the user's cart
-          await FirebaseFirestore.instance.collection('baskets').doc(user.uid).collection('cart_items').doc(batchId).delete();
+          // Navigate to OrderPlacedView
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => OrderPlacedView()),
+          );
         }
-
-        // Navigate to OrderPlacedView
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => OrderPlacedView()),
-        );
       } catch (e) {
         print('Order confirmation error: $e');
       }

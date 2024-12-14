@@ -175,39 +175,60 @@ class OrderViewModel extends ChangeNotifier {
   }
 
   // New method to handle the full order process
-  Future<bool> processOrderAndPayment(
-      String buyerId, List<Map<String, dynamic>> basketItems, String sellerId, double totalAmount, String? pickupTime) async {
+  Future<bool> processOrderAndPayment(String buyerId, List<Map<String, dynamic>> basketItems, String sellerId, String orderId,
+      double totalAmount, DateTime? pickupDateTime, bool usePoints, int points) async {
     try {
-      // Add order to Firestore
-      // DocumentReference orderRef = await FirebaseFirestore.instance.collection('orders').add({
-      //   'buyer_id': buyerId,
-      //   'created_at': DateTime.now(),
-      //   'order_items': basketItems
-      //       .map((item) => {
-      //             'product_id': item['productId'],
-      //             'quantity': item['quantity'],
-      //           })
-      //       .toList(),
-      //   'seller_id': sellerId,
-      //   'status': 'Pending',
-      //   'pickup_time': pickupTime,
-      // });
+      // Add order to firestore
+      DocumentReference orderRef = await FirebaseFirestore.instance.collection('orders').add({
+        'buyerId': buyerId,
+        'completedAt': null,
+        'createdAt': DateTime.now(),
+        'isPaid': false,
+        'orderId': orderId,
+        'orderItems': basketItems
+            .map((item) => {
+                  'batchId': item['batchId'],
+                  'quantity': item['quantity'],
+                  'price': item['batchPrice'],
+                })
+            .toList(),
+        'sellerId': sellerId,
+        'status': "Pending",
+        'totalPrice': totalAmount,
+        'pickupTime': Timestamp.fromDate(pickupDateTime!),
+        'pointsDiscount': usePoints ? points : 0
+      });
 
       // Process the payment
       await makePayment(totalAmount.toString());
 
       // If payment is successful, mark order as paid
-      // await orderRef.update({'is_paid': true, 'status': 'Paid'});
+      await orderRef.update({'isPaid': true});
 
-      // Delete items from the basket after successful payment
-      // for (var item in basketItems) {
-      //   await FirebaseFirestore.instance
-      //       .collection('baskets')
-      //       .doc(buyerId)
-      //       .collection('cart_items')
-      //       .doc(item['productId'])
-      //       .delete();
-      // }
+      // Remove items from user's basket
+      for (var item in basketItems) {
+        String batchId = item['batchId'];
+        int quantity = item['quantity'];
+
+        // Fetch the batch document
+        DocumentSnapshot batchSnapshot = await FirebaseFirestore.instance.collection('batches').doc(batchId).get();
+
+        if (batchSnapshot.exists) {
+          Map<String, dynamic>? batchData = batchSnapshot.data() as Map<String, dynamic>?;
+          int currentStock = batchData?['stock'] ?? 0;
+
+          // Update the stock for the batch
+          int newStock = currentStock - quantity;
+          if (newStock < 0) {
+            throw Exception('Insufficient stock for batch $batchId');
+          }
+
+          await FirebaseFirestore.instance.collection('batches').doc(batchId).update({'stock': newStock});
+        }
+
+        // Remove the item from the user's cart
+        await FirebaseFirestore.instance.collection('baskets').doc(buyerId).collection('cart_items').doc(batchId).delete();
+      }
 
       return true;
     } catch (e) {
