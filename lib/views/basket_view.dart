@@ -14,7 +14,7 @@ class BasketView extends StatefulWidget {
 class _BasketViewState extends State<BasketView> {
   User? user;
   Map<String, List<Map<String, dynamic>>> groupedBasketItems = {};
-  Set<String> selectedProductIds = {};
+  Set<String> selectedBatchIds = {};
   double total = 0.0;
   String? selectedSellerId;
 
@@ -33,35 +33,46 @@ class _BasketViewState extends State<BasketView> {
     Map<String, List<Map<String, dynamic>>> groupedItems = {};
 
     for (var doc in basketSnapshot.docs) {
-      final productId = doc.id;
+      final batchId = doc.id;
       final quantity = doc['quantity'];
 
-      // Fetch product details
-      final productSnapshot = await FirebaseFirestore.instance.collection('products').doc(productId).get();
+      // Fetch batch details
+      final batchSnapshot = await FirebaseFirestore.instance.collection('batches').doc(batchId).get();
 
-      if (productSnapshot.exists) {
-        final productData = productSnapshot.data();
-        final sellerId = productData?['sellerId'];
+      if (batchSnapshot.exists) {
+        final batchData = batchSnapshot.data();
+        final productId = batchData?['productId'];
+        final sellerId = batchData?['sellerId'];
 
-        // Fetch store details
-        final storeSnapshot = await FirebaseFirestore.instance.collection('stores').doc(sellerId).get();
+        // Fetch product details
+        final productSnapshot = await FirebaseFirestore.instance.collection('products').doc(productId).get();
 
-        if (storeSnapshot.exists) {
-          final storeData = storeSnapshot.data();
+        if (productSnapshot.exists) {
+          final productData = productSnapshot.data();
 
-          if (!groupedItems.containsKey(sellerId)) {
-            groupedItems[sellerId] = [];
+          // Fetch store details
+          final storeSnapshot = await FirebaseFirestore.instance.collection('stores').doc(sellerId).get();
+
+          if (storeSnapshot.exists) {
+            final storeData = storeSnapshot.data();
+
+            if (!groupedItems.containsKey(sellerId)) {
+              groupedItems[sellerId] = [];
+            }
+
+            groupedItems[sellerId]!.add({
+              'batchId': batchId,
+              'quantity': quantity,
+              'batchPrice': batchData?['price'],
+              'batchDiscount': batchData?['discount'],
+              'batchStock': batchData?['stock'],
+              'productName': productData?['name'],
+              'productMainImageUrl': productData?['mainImageUrl'],
+              'productQuantifier': productData?['quantifier'],
+              'storeName': storeData?['store_name'],
+              'storeImageUrl': storeData?['store_image_url'],
+            });
           }
-
-          groupedItems[sellerId]!.add({
-            'productId': productId,
-            'quantity': quantity,
-            'name': productData?['name'],
-            'price': productData?['price'],
-            'mainImageUrl': productData?['mainImageUrl'],
-            'storeName': storeData?['store_name'],
-            'storeImageUrl': storeData?['store_image_url'],
-          });
         }
       }
     }
@@ -73,11 +84,13 @@ class _BasketViewState extends State<BasketView> {
 
   void updateTotal() {
     double newTotal = 0.0;
-    selectedProductIds.forEach((productId) {
+    selectedBatchIds.forEach((batchId) {
       groupedBasketItems.forEach((sellerId, items) {
         for (var item in items) {
-          if (item['productId'] == productId) {
-            newTotal += item['price'] * item['quantity'];
+          if (item['batchId'] == batchId) {
+            final discount = item['batchDiscount'] ?? 0;
+            final priceAfterDiscount = item['batchPrice'] * (1 - discount / 100);
+            newTotal += priceAfterDiscount * item['quantity'];
           }
         }
       });
@@ -86,6 +99,28 @@ class _BasketViewState extends State<BasketView> {
     setState(() {
       total = newTotal;
     });
+  }
+
+  void toggleStoreSelection(String sellerId, bool isSelected) {
+    final storeItems = groupedBasketItems[sellerId];
+    if (storeItems != null) {
+      setState(() {
+        if (isSelected) {
+          // Add all items from the store to the selected list
+          storeItems.forEach((item) => selectedBatchIds.add(item['batchId']));
+          selectedSellerId = sellerId; // Update the selected seller ID
+        } else {
+          // Remove all items from the store from the selected list
+          storeItems.forEach((item) => selectedBatchIds.remove(item['batchId']));
+
+          // Reset selectedSellerId only if no items remain selected
+          if (selectedBatchIds.isEmpty) {
+            selectedSellerId = null;
+          }
+        }
+        updateTotal();
+      });
+    }
   }
 
   @override
@@ -122,11 +157,12 @@ class _BasketViewState extends State<BasketView> {
           ),
         ],
         bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(4.0),
-            child: Container(
-              color: const Color.fromARGB(255, 200, 221, 150),
-              height: 6.0,
-            )),
+          preferredSize: const Size.fromHeight(4.0),
+          child: Container(
+            color: const Color.fromARGB(255, 200, 221, 150),
+            height: 6.0,
+          ),
+        ),
       ),
       body: ListView(
         children: groupedBasketItems.entries.map((entry) {
@@ -134,6 +170,9 @@ class _BasketViewState extends State<BasketView> {
           final storeItems = entry.value;
           final storeName = storeItems[0]['storeName'];
           final storeImageUrl = storeItems[0]['storeImageUrl'];
+
+          final allStoreItemsSelected = storeItems.every((item) => selectedBatchIds.contains(item['batchId']));
+          final someStoreItemsSelected = storeItems.any((item) => selectedBatchIds.contains(item['batchId']));
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,6 +190,13 @@ class _BasketViewState extends State<BasketView> {
                 },
                 child: Row(
                   children: [
+                    Checkbox(
+                      value: allStoreItemsSelected,
+                      tristate: someStoreItemsSelected && !allStoreItemsSelected,
+                      onChanged: (isChecked) {
+                        toggleStoreSelection(sellerId, isChecked ?? false);
+                      },
+                    ),
                     CircleAvatar(
                       backgroundImage: sellerId != null ? CachedNetworkImageProvider(storeImageUrl) : null,
                       radius: 20,
@@ -164,11 +210,15 @@ class _BasketViewState extends State<BasketView> {
                 ),
               ),
               ...storeItems.map((item) {
-                final productId = item['productId'];
-                final productName = item['name'];
-                final productPrice = item['price'];
-                final productQuantity = item['quantity'];
-                final productImageUrl = item['mainImageUrl'];
+                final batchId = item['batchId'];
+                final productName = item['productName'];
+                final productMainImageUrl = item['productMainImageUrl'];
+                final productQuantifier = item['productQuantifier'];
+                final batchPrice = item['batchPrice'];
+                final batchDiscount = item['batchDiscount'] ?? 0;
+                final priceAfterDiscount = batchPrice * (1 - batchDiscount / 100);
+                final batchStock = item['batchStock'];
+                final batchQuantity = item['quantity'];
 
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
@@ -176,26 +226,35 @@ class _BasketViewState extends State<BasketView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Checkbox(
-                        value: selectedProductIds.contains(productId),
+                        value: selectedBatchIds.contains(batchId),
                         onChanged: (value) {
                           setState(() {
                             if (value == true) {
+                              // Add the batch to selectedBatchIds
                               if (selectedSellerId == null || selectedSellerId == sellerId) {
-                                selectedProductIds.add(productId);
-                                selectedSellerId = sellerId;
+                                selectedBatchIds.add(batchId);
+                                selectedSellerId = sellerId; // Update the selected seller ID
                               } else {
-                                // Notify user they can only order from one store
+                                // Show error if trying to select from a different seller
                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                                   content: Text('You can only order from one store at a time.'),
                                 ));
                               }
                             } else {
-                              selectedProductIds.remove(productId);
-                              if (selectedProductIds.isEmpty) {
+                              // Remove the batch from selectedBatchIds
+                              selectedBatchIds.remove(batchId);
+
+                              // Reset selectedSellerId only if no items remain selected
+                              final storeItems = groupedBasketItems[sellerId];
+                              final storeBatchesStillSelected = storeItems!.any(
+                                (item) => selectedBatchIds.contains(item['batchId']),
+                              );
+
+                              if (!storeBatchesStillSelected) {
                                 selectedSellerId = null;
                               }
                             }
-                            updateTotal(); // Update total price
+                            updateTotal();
                           });
                         },
                       ),
@@ -205,7 +264,7 @@ class _BasketViewState extends State<BasketView> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(8),
                           image: DecorationImage(
-                            image: NetworkImage(productImageUrl),
+                            image: NetworkImage(productMainImageUrl),
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -216,13 +275,14 @@ class _BasketViewState extends State<BasketView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(productName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                            Text('₱$productPrice', style: const TextStyle(color: Colors.grey)),
+                            Text('${productQuantifier}: ₱${priceAfterDiscount.toStringAsFixed(2)}',
+                                style: const TextStyle(color: Colors.grey)),
                             Row(
                               children: [
                                 const Text("Qty: "),
                                 IconButton(
                                   icon: const Icon(Icons.remove),
-                                  onPressed: productQuantity > 1
+                                  onPressed: batchQuantity > 1
                                       ? () {
                                           setState(() {
                                             item['quantity']--;
@@ -231,22 +291,24 @@ class _BasketViewState extends State<BasketView> {
                                         }
                                       : null,
                                 ),
-                                Text('$productQuantity'),
+                                Text('$batchQuantity'),
                                 IconButton(
                                   icon: const Icon(Icons.add),
-                                  onPressed: () {
-                                    setState(() {
-                                      item['quantity']++;
-                                      updateTotal();
-                                    });
-                                  },
+                                  onPressed: batchQuantity < batchStock
+                                      ? () {
+                                          setState(() {
+                                            item['quantity']++;
+                                            updateTotal();
+                                          });
+                                        }
+                                      : null,
                                 ),
                               ],
                             ),
                           ],
                         ),
                       ),
-                      Text('₱${(productPrice * productQuantity).toStringAsFixed(2)}',
+                      Text('₱${(priceAfterDiscount * batchQuantity).toStringAsFixed(2)}',
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                     ],
                   ),
@@ -260,18 +322,16 @@ class _BasketViewState extends State<BasketView> {
         child: Row(
           children: [
             const Spacer(),
-            Text("Total: ₱$total", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text("Total: ₱${total.toStringAsFixed(2)}", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const Spacer(),
             ElevatedButton(
-              onPressed: selectedProductIds.isEmpty
+              onPressed: selectedBatchIds.isEmpty
                   ? null
                   : () {
-                      // filter selected items based on selectedProductIds
                       final selectedItems = groupedBasketItems[selectedSellerId]!
-                          .where((item) => selectedProductIds.contains(item['productId']))
+                          .where((item) => selectedBatchIds.contains(item['batchId']))
                           .toList();
 
-                      // navigate and send selected items to CheckoutView
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
@@ -287,11 +347,13 @@ class _BasketViewState extends State<BasketView> {
               ),
               child: const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                child: Text("CHECKOUT",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                    )),
+                child: Text(
+                  "CHECKOUT",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
           ],

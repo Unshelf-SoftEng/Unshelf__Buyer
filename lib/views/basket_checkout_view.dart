@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,6 +8,8 @@ import 'package:provider/provider.dart';
 import 'package:unshelf_buyer/views/chat_screen.dart';
 import 'package:unshelf_buyer/views/order_placed_view.dart';
 import 'package:unshelf_buyer/viewmodels/order_viewmodel.dart';
+import 'package:unshelf_buyer/widgets/datetime_picker.dart';
+import 'package:unshelf_buyer/widgets/my_switch.dart';
 
 class CheckoutView extends StatefulWidget {
   final List<Map<String, dynamic>> basketItems;
@@ -20,18 +24,23 @@ class CheckoutView extends StatefulWidget {
 class _CheckoutViewState extends State<CheckoutView> {
   Map<String, Map<String, dynamic>> storeDetails = {};
   double totalAmount = 0.0;
+  double totalRegular = 0.0;
+  double totalWithDisc = 0.0;
   String storeName = '';
   String storeImageUrl = '';
-  TimeOfDay? selectedPickupTime;
+  DateTime? selectedPickupDateTime;
   String selectedPaymentMethod = 'Cash'; // Default to 'Cash'
   String orderId = '';
+  int points = 0;
+
+  bool usePoints = false;
 
   @override
   void initState() {
     super.initState();
     fetchStoreDetails();
+    fetchUserDetails();
     calculateTotalAmount();
-    setDefaultPickupTime();
     generateOrderId();
   }
 
@@ -53,18 +62,31 @@ class _CheckoutViewState extends State<CheckoutView> {
     });
   }
 
-  void calculateTotalAmount() {
-    totalAmount = widget.basketItems.fold(0, (sum, item) => sum + item['price'] * item['quantity']);
-  }
-
-  void setDefaultPickupTime() {
-    final now = DateTime.now();
-    final newTime = now.add(const Duration(minutes: 30));
-    final hour = newTime.hour % 12 == 0 ? 12 : newTime.hour % 12;
-    final minute = newTime.minute;
+  void fetchUserDetails() async {
+    String uid = FirebaseAuth.instance.currentUser!.uid;
+    int userPoints = 0;
+    final userSnapshot = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    if (userSnapshot.exists) {
+      userPoints = userSnapshot.data()?['points'];
+    }
 
     setState(() {
-      selectedPickupTime = TimeOfDay(hour: hour, minute: minute);
+      points = userPoints;
+    });
+  }
+
+  void calculateTotalAmount() {
+    totalRegular = (widget.basketItems.fold(0, (sum, item) => sum + item['batchPrice'] * item['quantity']));
+    totalAmount = totalRegular;
+  }
+
+  void updateTotal() {
+    double newTotal = totalRegular;
+    if (usePoints) {
+      newTotal = totalRegular - points;
+    }
+    setState(() {
+      totalAmount = newTotal;
     });
   }
 
@@ -88,15 +110,12 @@ class _CheckoutViewState extends State<CheckoutView> {
     orderId = '$currentDate-$nextOrderNumber';
   }
 
-  Future<void> _selectPickupTime() async {
-    final TimeOfDay? pickedTime = await showTimePicker(
-      context: context,
-      initialTime: selectedPickupTime ?? TimeOfDay.now(),
-    );
+  Future<void> _selectPickupDateTime() async {
+    final DateTime? pickedDateTime = await showDateTimePicker(context: context);
 
-    if (pickedTime != null) {
+    if (pickedDateTime != null) {
       setState(() {
-        selectedPickupTime = pickedTime;
+        selectedPickupDateTime = pickedDateTime;
       });
     }
   }
@@ -111,85 +130,57 @@ class _CheckoutViewState extends State<CheckoutView> {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
-        if (selectedPaymentMethod == 'Card') {
-          final orderViewModel = Provider.of<OrderViewModel>(context, listen: false);
+        // Create the order document in Firestore
+        await FirebaseFirestore.instance.collection('orders').add({
+          'buyerId': user.uid,
+          'completedAt': null,
+          'createdAt': DateTime.now(),
+          'isPaid': selectedPaymentMethod == 'Card',
+          'orderId': orderId,
+          'orderItems': widget.basketItems
+              .map((item) => {
+                    'batchId': item['batchId'],
+                    'quantity': item['quantity'],
+                    'price': item['batchPrice'],
+                  })
+              .toList(),
+          'sellerId': widget.sellerId,
+          'status': "Pending",
+          'totalPrice': totalAmount,
+          'pickupTime': Timestamp.fromDate(selectedPickupDateTime!),
+          'pointsDiscount': usePoints ? points : 0
+        });
 
-          await FirebaseFirestore.instance.collection('orders').add({
-            'buyerId': user.uid,
-            'completedAt': null,
-            'createdAt': DateTime.now(),
-            'isPaid': true,
-            'orderId': orderId,
-            'orderItems': widget.basketItems
-                .map((item) => {
-                      'productId': item['productId'],
-                      'quantity': item['quantity'],
-                    })
-                .toList(),
-            'sellerId': widget.sellerId,
-            'status': "Pending",
-            'totalPrice': totalAmount,
-            'pickupTime': selectedPickupTime?.format(context),
-          }).then((docRef) {
-            debugPrint("Order created with ID: ${docRef.id}");
-          });
+        // Process each item in the basket
+        for (var item in widget.basketItems) {
+          String batchId = item['batchId'];
+          int quantity = item['quantity'];
 
-          // Delete checked out items from the user's basket
-          for (var item in widget.basketItems) {
-            await FirebaseFirestore.instance
-                .collection('baskets')
-                .doc(user.uid)
-                .collection('cart_items')
-                .doc(item['productId'])
-                .delete();
+          // Fetch the batch document
+          DocumentSnapshot batchSnapshot = await FirebaseFirestore.instance.collection('batches').doc(batchId).get();
+
+          if (batchSnapshot.exists) {
+            Map<String, dynamic>? batchData = batchSnapshot.data() as Map<String, dynamic>?;
+            int currentStock = batchData?['stock'] ?? 0;
+
+            // Update the stock for the batch
+            int newStock = currentStock - quantity;
+            if (newStock < 0) {
+              throw Exception('Insufficient stock for batch $batchId');
+            }
+
+            await FirebaseFirestore.instance.collection('batches').doc(batchId).update({'stock': newStock});
           }
 
-          bool paymentSuccess = await orderViewModel.processOrderAndPayment(
-            user.uid,
-            widget.basketItems,
-            widget.sellerId!,
-            totalAmount,
-            selectedPickupTime?.format(context),
-          );
-        } else {
-          debugPrint("Initiating order creation");
-          debugPrint(
-              "buyerId: ${user.uid} createdAt: {$DateTime.now()}  \n orderId: ${orderId} sellerId: ${widget.sellerId} \n totalPrice ${totalAmount} \n pickupTime: ${selectedPickupTime?.format(context)}");
-          await FirebaseFirestore.instance.collection('orders').add({
-            'buyerId': user.uid,
-            'completedAt': null,
-            'createdAt': DateTime.now(),
-            'isPaid': false,
-            'orderId': orderId,
-            'orderItems': widget.basketItems
-                .map((item) => {
-                      'productId': item['productId'],
-                      'quantity': item['quantity'],
-                    })
-                .toList(),
-            'sellerId': widget.sellerId,
-            'status': "Pending",
-            'totalPrice': totalAmount,
-            'pickupTime': selectedPickupTime?.format(context),
-          }).then((docRef) {
-            debugPrint("Order created with ID: ${docRef.id}");
-          });
-
-          // Delete checked out items from the user's basket
-          for (var item in widget.basketItems) {
-            await FirebaseFirestore.instance
-                .collection('baskets')
-                .doc(user.uid)
-                .collection('cart_items')
-                .doc(item['productId'])
-                .delete();
-          }
-
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => OrderPlacedView()),
-          );
+          // Remove the item from the user's cart
+          await FirebaseFirestore.instance.collection('baskets').doc(user.uid).collection('cart_items').doc(batchId).delete();
         }
+
+        // Navigate to OrderPlacedView
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => OrderPlacedView()),
+        );
       } catch (e) {
         print('Order confirmation error: $e');
       }
@@ -236,7 +227,7 @@ class _CheckoutViewState extends State<CheckoutView> {
             child: Row(
               children: [
                 OutlinedButton(
-                  onPressed: _selectPickupTime,
+                  onPressed: _selectPickupDateTime,
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFF6E9E57)),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
@@ -244,9 +235,9 @@ class _CheckoutViewState extends State<CheckoutView> {
                   child: const Text('Pickup Time', style: TextStyle(color: Color(0xFF6E9E57))),
                 ),
                 const SizedBox(width: 10),
-                if (selectedPickupTime != null)
+                if (selectedPickupDateTime != null)
                   Text(
-                    selectedPickupTime!.format(context),
+                    DateFormat('EEE MM-dd-yyyy | h:mm a').format(selectedPickupDateTime!),
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
               ],
@@ -271,19 +262,19 @@ class _CheckoutViewState extends State<CheckoutView> {
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
                     children: [
-                      Image.network(item['mainImageUrl'], width: 80, height: 80, fit: BoxFit.cover),
+                      Image.network(item['productMainImageUrl'], width: 80, height: 80, fit: BoxFit.cover),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(item['name'], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                            Text('₱${item['price']} x ${item['quantity']}', style: const TextStyle(color: Colors.grey)),
+                            Text(item['productName'], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                            Text('₱${item['batchPrice']} x ${item['quantity']}', style: const TextStyle(color: Colors.grey)),
                           ],
                         ),
                       ),
                       Text(
-                        '₱${(item['price'] * item['quantity']).toStringAsFixed(2)}',
+                        '₱${(item['batchPrice'] * item['quantity']).toStringAsFixed(2)}',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ],
@@ -292,16 +283,38 @@ class _CheckoutViewState extends State<CheckoutView> {
               },
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              children: [
+                Switch(
+                    onChanged: (value) {
+                      setState(() {
+                        usePoints = !usePoints;
+                      });
+
+                      updateTotal();
+                    },
+                    value: usePoints,
+                    activeColor: Colors.green),
+                const SizedBox(width: 10),
+                Text(
+                  "Use points: -${points.toString()}.00 PHP",
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                )
+              ],
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: BottomAppBar(
         child: Row(
           children: [
             const Spacer(),
-            Text("Total: ₱$totalAmount", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text("Total: ₱${totalAmount.toStringAsFixed(2)}", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const Spacer(),
             ElevatedButton(
-              onPressed: _confirmOrder,
+              onPressed: selectedPickupDateTime == null ? null : _confirmOrder,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF6A994E),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),

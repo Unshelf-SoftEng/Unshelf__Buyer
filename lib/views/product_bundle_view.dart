@@ -171,17 +171,17 @@ class _BundleViewState extends State<BundleView> {
                       const SizedBox(height: 8.0),
                       FutureBuilder<QuerySnapshot>(
                         future: FirebaseFirestore.instance
-                            .collection('products')
-                            .where(FieldPath.documentId, whereIn: bundleData['productIds'] ?? [])
+                            .collection('batches')
+                            .where(FieldPath.documentId, whereIn: bundleData['items'].map((item) => item['batchId']).toList())
                             .get(),
-                        builder: (context, productSnapshot) {
-                          if (!productSnapshot.hasData) {
+                        builder: (context, batchSnapshot) {
+                          if (!batchSnapshot.hasData) {
                             return const Center(child: CircularProgressIndicator());
                           }
 
-                          var products = productSnapshot.data!.docs;
+                          var batches = batchSnapshot.data!.docs;
 
-                          if (products.isEmpty) {
+                          if (batches.isEmpty) {
                             return const Text('No products found in this bundle.');
                           }
 
@@ -189,52 +189,65 @@ class _BundleViewState extends State<BundleView> {
                             height: 200.0,
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
-                              itemCount: products.length,
+                              itemCount: batches.length,
                               itemBuilder: (context, index) {
-                                var product = products[index].data() as Map<String, dynamic>;
-                                return GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => ProductPage(productId: products[index].id),
+                                var batch = batches[index].data() as Map<String, dynamic>;
+
+                                // Fetch product details using the productId from the batch
+                                return FutureBuilder<DocumentSnapshot>(
+                                  future: FirebaseFirestore.instance.collection('products').doc(batch['productId']).get(),
+                                  builder: (context, productSnapshot) {
+                                    if (!productSnapshot.hasData) {
+                                      return const CircularProgressIndicator();
+                                    }
+
+                                    var product = productSnapshot.data!.data() as Map<String, dynamic>;
+
+                                    return GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => ProductPage(productId: batch['productId']),
+                                          ),
+                                        );
+                                      },
+                                      child: Card(
+                                        margin: const EdgeInsets.only(right: 8.0),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            CachedNetworkImage(
+                                              imageUrl: product['mainImageUrl'] ?? '',
+                                              placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                                              errorWidget: (context, url, error) => const Center(child: Icon(Icons.error)),
+                                              width: 120.0,
+                                              height: 120.0,
+                                              fit: BoxFit.cover,
+                                            ),
+                                            const SizedBox(height: 8.0),
+                                            Padding(
+                                              padding: const EdgeInsets.all(3.0),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    product['name'] ?? 'No Name',
+                                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                  Text(
+                                                    'P ${batch['price'] ?? 0}',
+                                                    style: const TextStyle(fontSize: 14, color: Colors.green),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     );
                                   },
-                                  child: Card(
-                                    margin: const EdgeInsets.only(right: 8.0),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        CachedNetworkImage(
-                                          imageUrl: product['mainImageUrl'] ?? '',
-                                          placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                                          errorWidget: (context, url, error) => const Center(child: Icon(Icons.error)),
-                                          width: 120.0,
-                                          height: 120.0,
-                                          fit: BoxFit.cover,
-                                        ),
-                                        const SizedBox(height: 8.0),
-                                        Padding(
-                                          padding: const EdgeInsets.all(3.0),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                product['name'] ?? 'No Name',
-                                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                              Text(
-                                                'P ${product['price'] ?? 0}',
-                                                style: const TextStyle(fontSize: 14, color: Colors.green),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
                                 );
                               },
                             ),
@@ -268,54 +281,31 @@ class _BundleViewState extends State<BundleView> {
       ),
     );
   }
+}
 
-  Future<void> _addToFavorites(BuildContext context, String bundleId) async {
-    try {
-      User? user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .collection('favorites')
-            .doc(bundleId)
-            .set({'added_at': FieldValue.serverTimestamp(), 'is_bundle': true});
+Future<void> _addToCart(BuildContext context, String bundleId, int quantity) async {
+  try {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      DocumentReference userBasketRef = FirebaseFirestore.instance.collection('baskets').doc(user.uid);
+      DocumentReference cartItemRef = userBasketRef.collection('cart_items').doc(bundleId);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Bundle added to favorites!')),
-        );
+      DocumentSnapshot cartItemSnapshot = await cartItemRef.get();
+
+      if (cartItemSnapshot.exists) {
+        await cartItemRef.update({'quantity': FieldValue.increment(quantity)});
+      } else {
+        await cartItemRef.set({'quantity': quantity});
       }
-    } catch (e) {
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to add to favorites.')),
+        const SnackBar(content: Text('Bundle added to cart')),
       );
     }
-  }
-
-  Future<void> _addToCart(BuildContext context, String bundleId, int quantity) async {
-    try {
-      User? user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        DocumentReference userBasketRef = FirebaseFirestore.instance.collection('baskets').doc(user.uid);
-        DocumentReference cartItemRef = userBasketRef.collection('cart_items').doc(bundleId);
-
-        DocumentSnapshot cartItemSnapshot = await cartItemRef.get();
-
-        if (cartItemSnapshot.exists) {
-          // Update quantity if the item is already in the cart
-          await cartItemRef.update({'quantity': FieldValue.increment(quantity)});
-        } else {
-          // Add new item to the cart
-          await cartItemRef.set({'quantity': quantity});
-        }
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Bundle added to cart!')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to add to cart.')),
-      );
-    }
+  } catch (e) {
+    print('Error adding to cart: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Error adding to cart')),
+    );
   }
 }

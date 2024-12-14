@@ -24,6 +24,17 @@ class _HomeViewState extends State<HomeView> {
   List<DocumentSnapshot> _searchResults = [];
   bool _isSearching = false;
 
+  Future<List<DocumentSnapshot>> _fetchListedProducts() async {
+    var batchesSnapshot = await _firestore.collection('batches').where('isListed', isEqualTo: true).get();
+
+    List<String> productIds = batchesSnapshot.docs.map((doc) => doc['productId'] as String).toSet().toList();
+
+    if (productIds.isEmpty) return [];
+    var productsSnapshot = await _firestore.collection('products').where(FieldPath.documentId, whereIn: productIds).get();
+
+    return productsSnapshot.docs;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,12 +50,9 @@ class _HomeViewState extends State<HomeView> {
           ),
           child: Row(
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: const Icon(
-                  Icons.search,
-                  color: Color(0xFFA3C38C),
-                ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                child: Icon(Icons.search, color: Color(0xFFA3C38C)),
               ),
               Expanded(
                 child: TextField(
@@ -64,10 +72,7 @@ class _HomeViewState extends State<HomeView> {
           IconButton(
             icon: const CircleAvatar(
               backgroundColor: Colors.white,
-              child: Icon(
-                Icons.shopping_basket,
-                color: Color(0xFF6E9E57),
-              ),
+              child: Icon(Icons.shopping_basket, color: Color(0xFF6E9E57)),
             ),
             onPressed: () {
               Navigator.push(
@@ -82,10 +87,7 @@ class _HomeViewState extends State<HomeView> {
           IconButton(
             icon: const CircleAvatar(
               backgroundColor: Colors.white,
-              child: Icon(
-                Icons.message,
-                color: Color(0xFF6E9E57),
-              ),
+              child: Icon(Icons.message, color: Color(0xFF6E9E57)),
             ),
             onPressed: () {
               Navigator.push(
@@ -96,11 +98,12 @@ class _HomeViewState extends State<HomeView> {
           ),
         ],
         bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(4.0),
-            child: Container(
-              color: const Color.fromARGB(255, 200, 221, 150),
-              height: 4.0,
-            )),
+          preferredSize: const Size.fromHeight(4.0),
+          child: Container(
+            color: const Color.fromARGB(255, 200, 221, 150),
+            height: 4.0,
+          ),
+        ),
       ),
       body: _isSearching ? _buildSearchResults() : _buildHomeContent(),
       bottomNavigationBar: BottomNavigationBar(
@@ -125,14 +128,102 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget _buildHomeContent() {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          _buildCarouselBanner(),
-          CategoryIconsRow(),
-          _buildSellingOutSection(),
-          _buildBundleDealsSection(),
-        ],
+    return FutureBuilder<List<DocumentSnapshot>>(
+      future: _fetchListedProducts(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text("No products available."));
+        }
+
+        final products = snapshot.data!;
+        return SingleChildScrollView(
+          child: Column(
+            children: [
+              _buildCarouselBanner(),
+              CategoryIconsRow(),
+              _buildProductCarousel(products),
+              _buildBundleDealsSection(),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildProductCarousel(List<DocumentSnapshot> products) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.all(8.0),
+          child: Text(
+            "Products",
+            style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+          ),
+        ),
+        CarouselSlider(
+          options: CarouselOptions(height: 200.0, viewportFraction: 0.5),
+          items: products.map((product) {
+            final data = product.data() as Map<String, dynamic>;
+            final productId = product.id;
+            return _buildProductCard(data, productId, false, context);
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProductCard(Map<String, dynamic> data, String productId, bool isBundle, BuildContext context,
+      {double? minPrice, double? maxPrice}) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => isBundle ? BundleView(bundleId: productId) : ProductPage(productId: productId),
+          ),
+        );
+      },
+      child: Card(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+          side: const BorderSide(color: Color(0xA7C957), width: 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                CachedNetworkImage(
+                  imageUrl: data['mainImageUrl'],
+                  height: 120,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                data['name'],
+                style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
+              ),
+            ),
+            if (minPrice != null && maxPrice != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Text(
+                  'PHP ${minPrice.toStringAsFixed(2)} - ${maxPrice.toStringAsFixed(2)}',
+                  style: const TextStyle(fontSize: 14.0, color: Colors.green),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -201,7 +292,7 @@ class _HomeViewState extends State<HomeView> {
 
   Widget _buildCarouselBanner() {
     return FutureBuilder<List<String>>(
-      future: _getBannerImageUrls(), // Fetch URLs from Firebase Storage
+      future: _getBannerImageUrls(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -249,168 +340,44 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
-  Widget _buildCategories() {
-    final categories = ['Grocery', 'Fruits', 'Vegetables', 'Baked Goods'];
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: categories.map((category) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4.0), // Reduced spacing between items
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.category, size: 16), // Reduced icon size
-                  Text(
-                    category,
-                    style: const TextStyle(fontSize: 9), // Reduced text size
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSellingOutSection() {
-    return _buildProductCarousel('Selling Out', 'sellingOut');
-  }
-
   Widget _buildBundleDealsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Text(
-            "Bundle Deals",
-            style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-          ),
-        ),
-        StreamBuilder<QuerySnapshot>(
-          stream: _firestore.collection('bundles').snapshots(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
+    return FutureBuilder<List<DocumentSnapshot>>(
+      future: _fetchBundles(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const SizedBox.shrink();
+        }
 
-            final bundles = snapshot.data!.docs;
-
-            return CarouselSlider(
-              options: CarouselOptions(
-                height: 200.0,
-                viewportFraction: 0.5,
+        final bundles = snapshot.data!;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                "Bundle Deals",
+                style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
               ),
+            ),
+            CarouselSlider(
+              options: CarouselOptions(height: 200.0, viewportFraction: 0.5),
               items: bundles.map((bundle) {
                 final data = bundle.data() as Map<String, dynamic>;
                 final bundleId = bundle.id;
                 return _buildProductCard(data, bundleId, true, context);
               }).toList(),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildProductCarousel(String title, String collection) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(
-            title,
-            style: const TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-          ),
-        ),
-        StreamBuilder<QuerySnapshot>(
-          stream: _firestore.collection('products').snapshots(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            final products = snapshot.data!.docs;
-
-            return CarouselSlider(
-              options: CarouselOptions(
-                height: 200.0,
-                viewportFraction: 0.5,
-              ),
-              items: products.map((product) {
-                final data = product.data() as Map<String, dynamic>;
-                final productId = product.id;
-                return _buildProductCard(data, productId, false, context);
-              }).toList(),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildProductCard(Map<String, dynamic> data, String productId, bool isBundle, BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => isBundle ? BundleView(bundleId: productId) : ProductPage(productId: productId),
-          ),
-        );
-      },
-      child: Card(
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15.0),
-          side: const BorderSide(color: Color(0xA7C957), width: 10),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              children: [
-                CachedNetworkImage(
-                  imageUrl: data['mainImageUrl'],
-                  height: 120,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-                if (data['discount'] != null)
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Container(
-                      color: Colors.red,
-                      padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
-                      child: Text(
-                        '${data['discount']}% off',
-                        style: const TextStyle(color: Colors.white, fontSize: 12),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
-              child: Text(
-                data['name'],
-                style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
-              ),
-            ),
-            Text(
-              '  PHP${data['price'].toStringAsFixed(2)}',
-              style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold, color: Colors.green),
             ),
           ],
-        ),
-      ),
+        );
+      },
     );
+  }
+
+  Future<List<DocumentSnapshot>> _fetchBundles() async {
+    final snapshot = await _firestore.collection('bundles').get();
+    return snapshot.docs;
   }
 }

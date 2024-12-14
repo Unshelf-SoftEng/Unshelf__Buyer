@@ -20,11 +20,15 @@ class _ProductPageState extends State<ProductPage> {
   Map<String, dynamic>? sellerData;
   bool isFavorite = false;
 
+  List<DocumentSnapshot>? _batches;
+  DocumentSnapshot? _selectedBatch;
+
   @override
   void initState() {
     super.initState();
     _fetchSellerData();
     _checkIfFavorite();
+    _fetchBatches();
   }
 
   Future<void> _fetchSellerData() async {
@@ -47,6 +51,27 @@ class _ProductPageState extends State<ProductPage> {
         isFavorite = favoriteDoc.exists;
       });
     }
+  }
+
+  Future<void> _fetchBatches() async {
+    var batchDocs = await FirebaseFirestore.instance
+        .collection('batches')
+        .where('productId', isEqualTo: widget.productId)
+        .where('isListed', isEqualTo: true)
+        .get();
+
+    setState(() {
+      _batches = batchDocs.docs;
+      if (_batches!.isNotEmpty) {
+        _selectedBatch = _batches!.first; // Default batch
+      }
+    });
+  }
+
+  void _onBatchSelected(DocumentSnapshot? batch) {
+    setState(() {
+      _selectedBatch = batch;
+    });
   }
 
   Future<void> _toggleFavorite() async {
@@ -82,12 +107,12 @@ class _ProductPageState extends State<ProductPage> {
           }
 
           var productData = snapshot.data!.data() as Map<String, dynamic>;
+          final batchData = _selectedBatch?.data() as Map<String, dynamic>?;
 
           return Column(
             children: [
               Stack(
                 children: [
-                  // Product image
                   CachedNetworkImage(
                     imageUrl: productData['mainImageUrl'],
                     placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
@@ -96,8 +121,6 @@ class _ProductPageState extends State<ProductPage> {
                     height: MediaQuery.of(context).size.height * 0.4,
                     fit: BoxFit.cover,
                   ),
-
-                  // Floating buttons
                   Positioned(
                     top: 40.0,
                     left: 16.0,
@@ -132,8 +155,6 @@ class _ProductPageState extends State<ProductPage> {
                   ),
                 ],
               ),
-
-              // Product Details
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16.0),
@@ -157,15 +178,31 @@ class _ProductPageState extends State<ProductPage> {
                         ],
                       ),
                       const SizedBox(height: 8.0),
+                      if (_batches != null && _batches!.isNotEmpty)
+                        DropdownButton<DocumentSnapshot>(
+                          value: _selectedBatch,
+                          isExpanded: true,
+                          onChanged: _onBatchSelected,
+                          items: _batches!.map((batch) {
+                            final batchInfo = batch.data() as Map<String, dynamic>;
+                            return DropdownMenuItem<DocumentSnapshot>(
+                              value: batch,
+                              child: Text(
+                                'Batch: ${batchInfo['batchNumber']} (${batchInfo['stock']})',
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      const SizedBox(height: 16.0),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            '₱${productData['price']} / ${productData['quantifier']}',
+                            '₱${batchData?['price']?.toStringAsFixed(2) ?? productData['price']} / ${productData['quantifier']}',
                             style: const TextStyle(fontSize: 20, color: Colors.green, fontWeight: FontWeight.bold),
                           ),
                           const Text(
-                            'Distance: 6 km', // Modify or calculate dynamically if needed
+                            'Distance: 6 km',
                             style: TextStyle(fontSize: 16, color: Colors.grey),
                           ),
                         ],
@@ -198,10 +235,10 @@ class _ProductPageState extends State<ProductPage> {
                         ),
                       ),
                       const SizedBox(height: 16.0),
-                      Text(
-                        'Expiration: ${DateFormat('MMMM d, yyyy').format((productData['expiryDate'] as Timestamp).toDate())}',
-                        style: const TextStyle(fontSize: 16, color: Colors.green),
-                      ),
+                      // Text(
+                      //   'Expiration: ${DateFormat('MMMM d, yyyy').format((productData['expiryDate'] as Timestamp).toDate())}',
+                      //   style: const TextStyle(fontSize: 16, color: Colors.green),
+                      // ),
                       const SizedBox(height: 8.0),
                       const Text(
                         'Description',
@@ -213,11 +250,6 @@ class _ProductPageState extends State<ProductPage> {
                         style: const TextStyle(fontSize: 16),
                       ),
                       const SizedBox(height: 8.0),
-                      const Text(
-                        'Note: Store in room temperature',
-                        style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
-                      ),
-                      const SizedBox(height: 16.0),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -251,7 +283,7 @@ class _ProductPageState extends State<ProductPage> {
       bottomNavigationBar: BottomAppBar(
         child: Center(
           child: ElevatedButton(
-            onPressed: () => _addToCart(context, widget.productId, _quantity),
+            onPressed: () => _addToCart(context, _selectedBatch!.id, _quantity),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green[500],
               shape: RoundedRectangleBorder(
@@ -268,7 +300,7 @@ class _ProductPageState extends State<ProductPage> {
     );
   }
 
-  Future<void> _addToCart(BuildContext context, String productId, int quantity) async {
+  Future<void> _addToCart(BuildContext context, String batchId, int quantity) async {
     try {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
@@ -276,7 +308,7 @@ class _ProductPageState extends State<ProductPage> {
             .collection('baskets')
             .doc(user.uid)
             .collection('cart_items')
-            .doc(productId)
+            .doc(batchId)
             .set({'quantity': quantity});
 
         ScaffoldMessenger.of(context).showSnackBar(

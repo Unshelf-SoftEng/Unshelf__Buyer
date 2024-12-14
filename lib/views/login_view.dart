@@ -24,10 +24,10 @@ class _LoginViewState extends State<LoginView> {
 
         // Fetch user role from Firestore
         DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).get();
-        
+
         if (userDoc.exists) {
           // Check if the user is banned
-           bool banned= userDoc['isBanned'];
+          bool banned = userDoc['isBanned'];
           if (banned == true) {
             await FirebaseAuth.instance.signOut(); // Sign out the banned user
             ScaffoldMessenger.of(context).showSnackBar(
@@ -58,7 +58,6 @@ class _LoginViewState extends State<LoginView> {
             const SnackBar(content: Text('User not found in database.')),
           );
         }
-        
       } on FirebaseAuthException catch (e) {
         String message;
         if (e.code == 'user-not-found') {
@@ -81,6 +80,7 @@ class _LoginViewState extends State<LoginView> {
       appBar: AppBar(
         title: const Text('Sign In'),
       ),
+      resizeToAvoidBottomInset: false,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(

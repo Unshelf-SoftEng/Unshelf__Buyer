@@ -40,12 +40,9 @@ class OrderHistoryView extends StatelessWidget {
         'storeName': storeData?['store_name'] ?? '',
         'storeImageUrl': storeData?['store_image_url'] ?? '',
         'orderItems': orderItemsDetails,
-        'status': orderData['status'],
-        'isPaid': orderData['isPaid'],
         'createdAt': orderData['createdAt'].toDate(),
         'totalPrice': orderData['totalPrice'],
         'pickupTime': orderData['pickupTime'],
-        'pickupCode': orderData['pickupCode'] != null ? orderData['pickupCode'] : '...',
       };
     }
     return {};
@@ -60,7 +57,7 @@ class OrderHistoryView extends StatelessWidget {
         elevation: 0,
         toolbarHeight: 60,
         title: const Text(
-          "Order Tracking",
+          "Order History",
           style: TextStyle(
             color: Colors.white,
           ),
@@ -70,7 +67,7 @@ class OrderHistoryView extends StatelessWidget {
         stream: FirebaseFirestore.instance
             .collection('orders')
             .where('buyerId', isEqualTo: _auth.currentUser!.uid)
-            .where('status', isNotEqualTo: 'Completed')
+            .where('status', isEqualTo: 'Completed')
             .snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) {
@@ -89,7 +86,6 @@ class OrderHistoryView extends StatelessWidget {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  debugPrint("Issue is inside listview");
                   final orderDetails = orderSnapshot.data!;
                   final storeName = orderDetails['storeName'];
                   final storeImageUrl = orderDetails['storeImageUrl'];
@@ -101,9 +97,9 @@ class OrderHistoryView extends StatelessWidget {
                   final orderItems = orderDetails['orderItems'];
                   final createdAt = orderDetails['createdAt'];
 
-                  debugPrint("Issue is not inside listview");
                   return Card(
-                    margin: const EdgeInsets.all(8.0),
+                    elevation: 0,
+                    margin: const EdgeInsets.all(0.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -113,16 +109,10 @@ class OrderHistoryView extends StatelessWidget {
                             backgroundImage: NetworkImage(storeImageUrl),
                           ),
                           title: Text(storeName),
-                          subtitle: Text(
-                            isPaid ? "Paid" : "To be Paid",
-                          ),
-                          trailing: const Icon(Icons.arrow_forward_ios),
                         ),
                         const Divider(),
                         ListTile(
-                          title: const Text("Delivery details"),
-                          subtitle: Text(
-                              "Status: $status\nPickup Time: $pickupTime     Pickup Code: $pickupCode\nOrdered On: $createdAt"),
+                          subtitle: Text("Ordered On: $createdAt\nPickup Time: $pickupTime "),
                         ),
                         const Divider(),
                         ...orderItems.map<Widget>((item) {
@@ -166,6 +156,9 @@ class OrderHistoryView extends StatelessWidget {
                                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                             ],
                           ),
+                        ),
+                        const Divider(
+                          thickness: 10,
                         ),
                       ],
                     ),

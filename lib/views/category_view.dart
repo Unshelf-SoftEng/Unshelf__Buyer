@@ -45,8 +45,8 @@ class CategoryProductsPage extends StatelessWidget {
                       backgroundImage: CachedNetworkImageProvider(productData['mainImageUrl']),
                     ),
                     title: Text(productData['name']),
-                    subtitle: Text('P ${productData['price']}'),
-                    trailing: Text(DateFormat('MMMM d, yyyy').format((productData['expiryDate'] as Timestamp).toDate())),
+                    // subtitle: Text('P ${productData['price']}'), TO-DO: ADD PRICE RANGE
+                    // trailing: Text(DateFormat('MMMM d, yyyy').format((productData['expiryDate'] as Timestamp).toDate())), TO-DO: RETRIEVE FROM BATCH
                     onTap: () {
                       Navigator.push(
                         context,

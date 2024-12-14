@@ -8,6 +8,7 @@ import 'package:unshelf_buyer/views/edit_profile_view.dart';
 import 'package:unshelf_buyer/views/home_view.dart';
 import 'package:unshelf_buyer/views/login_view.dart';
 import 'package:unshelf_buyer/views/map_view.dart';
+import 'package:unshelf_buyer/views/order_history_view.dart';
 import 'package:unshelf_buyer/views/order_tracking_view.dart';
 import 'package:unshelf_buyer/views/profile_favorites_view.dart';
 import 'package:unshelf_buyer/views/profile_following_view.dart';
@@ -39,7 +40,7 @@ class ProfileView extends StatelessWidget {
 
     String name = userDoc['name'];
 
-    return {'name': name, 'profileImageUrl': userDoc['profileImageUrl']};
+    return {'name': name, 'profileImageUrl': userDoc['profileImageUrl'], 'points': userDoc['points'].toString()};
   }
 
   @override
@@ -57,6 +58,7 @@ class ProfileView extends StatelessWidget {
           }
 
           final userData = snapshot.data!;
+          debugPrint(userData['points']);
           return Stack(
             children: [
               Column(
@@ -85,12 +87,12 @@ class ProfileView extends StatelessWidget {
                                 color: Colors.green.shade100,
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              child: const Row(
+                              child: Row(
                                 children: [
                                   Icon(Icons.emoji_events, size: 20),
                                   SizedBox(width: 8),
                                   Text(
-                                    "FOOD HERO BADGE",
+                                    "POINTS: ${userData['points']}",
                                     style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
                                   ),
                                 ],
@@ -107,19 +109,23 @@ class ProfileView extends StatelessWidget {
                       children: [
                         const SizedBox(height: 20),
                         _buildProfileOption(context, Icons.list_alt, "Edit Profile", 1),
-                        _buildProfileOption(context, Icons.track_changes, "Order Tracking", 2),
+                        const Divider(),
+                        _buildProfileOption(context, Icons.track_changes, "Orders", 2),
+                        const Divider(),
                         _buildProfileOption(context, Icons.favorite, "Favorites", 3),
+                        const Divider(),
                         _buildProfileOption(context, Icons.store, "Following", 4),
                         const Divider(),
-                        _buildProfileOption(context, Icons.location_on, "Addresses", 5),
-                        _buildProfileOption(context, Icons.subscriptions, "Subscriptions", 6),
-                        _buildProfileOption(context, Icons.share, "Referrals", 7),
-                        _buildProfileOption(context, Icons.card_giftcard, "Vouchers", 8),
-                        const Divider(),
-                        _buildProfileOption(context, Icons.help, "Help Center", 9),
-                        _buildProfileOption(context, Icons.settings, "Settings", 10),
-                        _buildProfileOption(context, Icons.support, "Customer Support", 11),
-                        _buildProfileOption(context, Icons.logout, "Log Out", 12),
+                        // const Divider(),
+                        // _buildProfileOption(context, Icons.history, "Order History", 5),
+                        // _buildProfileOption(context, Icons.subscriptions, "Subscriptions", 6),
+                        // _buildProfileOption(context, Icons.share, "Referrals", 7),
+                        // _buildProfileOption(context, Icons.card_giftcard, "Vouchers", 8),
+                        // const Divider(),
+                        // _buildProfileOption(context, Icons.help, "Help Center", 9),
+                        // _buildProfileOption(context, Icons.settings, "Settings", 10),
+                        // _buildProfileOption(context, Icons.support, "Customer Support", 11),
+                        _buildProfileOption(context, Icons.logout, "Log Out", 5),
                       ],
                     ),
                   ),
@@ -216,20 +222,6 @@ class ProfileView extends StatelessWidget {
             );
             break;
           case 5:
-            break;
-          case 6:
-            break;
-          case 7:
-            break;
-          case 8:
-            break;
-          case 9:
-            break;
-          case 10:
-            break;
-          case 11:
-            break;
-          case 12:
             FirebaseAuth.instance.signOut();
             Navigator.pushReplacement(
               context,

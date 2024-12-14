@@ -43,12 +43,11 @@ class _CategoryIconsRowState extends State<CategoryIconsRow> {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 decoration: BoxDecoration(
-                  color: _pressedIndex == index ? const Color(0xFF6E9E57) : Colors.transparent,
-                  border: Border.all(color: const Color(0xFF6E9E57)),
+                  color: _pressedIndex == index ? const Color(0xFF386641) : const Color(0xEEEEEEEE),
                   borderRadius: BorderRadius.circular(20.0),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-                margin: const EdgeInsets.symmetric(horizontal: 2.0),
+                padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+                margin: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
                 child: Row(
                   children: [
                     SvgPicture.asset(category.iconPath, height: 18.0, width: 18.0),
@@ -57,8 +56,8 @@ class _CategoryIconsRowState extends State<CategoryIconsRow> {
                       category.name,
                       style: TextStyle(
                           fontSize: 13.0,
-                          fontWeight: FontWeight.bold,
-                          color: _pressedIndex == index ? Colors.white : const Color(0xFF6E9E57)),
+                          // fontWeight: FontWeight.bold,
+                          color: _pressedIndex == index ? Colors.white : Colors.black),
                     ),
                   ],
                 ),

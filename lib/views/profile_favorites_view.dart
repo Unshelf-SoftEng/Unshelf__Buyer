@@ -66,14 +66,14 @@ class FavoritesView extends StatelessWidget {
 
                   final productData = productSnapshot.data!;
                   final name = productData['name'] as String;
-                  final price = productData['price'] as int;
+                  // final price = productData['price'] as int;
                   final quantifier = productData['quantifier'] as String;
                   final mainImageUrl = productData['mainImageUrl'] as String;
 
                   return ListTile(
                     leading: Image.network(mainImageUrl),
                     title: Text(name),
-                    subtitle: Text('₱$price/$quantifier'),
+                    // subtitle: Text('₱$price/$quantifier'),
                     onTap: () {
                       Navigator.push(
                         context,

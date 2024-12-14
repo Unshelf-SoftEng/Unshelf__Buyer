@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:unshelf_buyer/views/home_view.dart';
 import 'package:unshelf_buyer/views/map_view.dart';
+import 'package:unshelf_buyer/views/order_details_view.dart';
 import 'package:unshelf_buyer/views/profile_view.dart';
 
 class OrderTrackingView extends StatelessWidget {
@@ -39,13 +41,17 @@ class OrderTrackingView extends StatelessWidget {
       return {
         'storeName': storeData?['store_name'] ?? '',
         'storeImageUrl': storeData?['store_image_url'] ?? '',
+        'docId': orderId,
+        'orderId': orderData['orderId'],
         'orderItems': orderItemsDetails,
         'status': orderData['status'],
         'isPaid': orderData['isPaid'],
         'createdAt': orderData['createdAt'].toDate(),
+        'cancelledAt': orderData['cancelledAt'] ?? null,
+        'completedAt': orderData['completedAt'] ?? null,
         'totalPrice': orderData['totalPrice'],
-        'pickupTime': orderData['pickupTime'],
-        'pickupCode': orderData['pickupCode'] != null ? orderData['pickupCode'] : '...',
+        'pickupTime': orderData['pickupTime'].toDate(),
+        'pickupCode': orderData['pickupCode'] ?? '...',
       };
     }
     return {};
@@ -82,6 +88,8 @@ class OrderTrackingView extends StatelessWidget {
             itemCount: orders.length,
             itemBuilder: (context, index) {
               final orderId = orders[index].id;
+              final isDarkBackground = index % 2 == 0;
+
               return FutureBuilder<Map<String?, dynamic>>(
                 future: fetchOrderDetails(orderId),
                 builder: (context, orderSnapshot) {
@@ -89,7 +97,6 @@ class OrderTrackingView extends StatelessWidget {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  debugPrint("Issue is inside listview");
                   final orderDetails = orderSnapshot.data!;
                   final storeName = orderDetails['storeName'];
                   final storeImageUrl = orderDetails['storeImageUrl'];
@@ -101,73 +108,88 @@ class OrderTrackingView extends StatelessWidget {
                   final orderItems = orderDetails['orderItems'];
                   final createdAt = orderDetails['createdAt'];
 
-                  debugPrint("Issue is not inside listview");
-                  return Card(
-                    margin: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ListTile(
-                          leading: CircleAvatar(
-                            radius: 24,
-                            backgroundImage: NetworkImage(storeImageUrl),
-                          ),
-                          title: Text(storeName),
-                          subtitle: Text(
-                            isPaid ? "Paid" : "To be Paid",
-                          ),
-                          trailing: const Icon(Icons.arrow_forward_ios),
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => OrderDetailsView(orderDetails: orderDetails),
                         ),
-                        const Divider(),
-                        ListTile(
-                          title: const Text("Delivery details"),
-                          subtitle: Text(
-                              "        Status: $status\nPickup Time: $pickupTime     Pickup Code: $pickupCode\nOrdered On: $createdAt"),
-                        ),
-                        const Divider(),
-                        ...orderItems.map<Widget>((item) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                            child: Row(
-                              children: [
-                                Image.network(item['mainImageUrl'], width: 60, height: 60, fit: BoxFit.cover),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(item['name'], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                                      Text(
-                                        'PHP ${item['price']} / ${item['quantifier']}',
-                                        style: const TextStyle(color: Colors.grey),
-                                      ),
-                                      Text(
-                                        'x${item['quantity']}',
-                                        style: const TextStyle(color: Colors.grey),
-                                      ),
-                                    ],
+                      );
+                    },
+                    child: Container(
+                      color: isDarkBackground ? Colors.grey[200] : Colors.grey[100],
+                      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Middle Section: Order Info
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Order ID: $orderId',
+                                    style: const TextStyle(
+                                      fontSize: 14.0,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4.0),
+                                  Text(
+                                    createdAt.toString().split(' ')[0],
+                                    style: TextStyle(
+                                      fontSize: 12.0,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4.0),
+                                  Text(
+                                    'Status: $status',
+                                    style: TextStyle(
+                                      fontSize: 12.0,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          // Right Section: Price and Payment Status
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '₱ ${total.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green[800],
+                                ),
+                              ),
+                              const SizedBox(height: 8.0),
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 12.0),
+                                decoration: BoxDecoration(
+                                  color: isPaid ? Colors.green : Colors.red,
+                                  borderRadius: BorderRadius.circular(12.0),
+                                ),
+                                child: Text(
+                                  isPaid ? 'Paid' : 'Unpaid',
+                                  style: const TextStyle(
+                                    fontSize: 12.0,
+                                    color: Colors.white,
                                   ),
                                 ),
-                                Text(
-                                  '₱${(item['price'] * item['quantity']).toStringAsFixed(2)}',
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                        const Divider(),
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Text("Total: ₱${total.toStringAsFixed(2)}",
-                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              ),
                             ],
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   );
                 },

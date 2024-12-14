@@ -57,10 +57,8 @@ class _StoreViewState extends State<StoreView> {
   }
 
   Future<void> _toggleFollow() async {
-    debugPrint("toggleFollow: entering");
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      debugPrint("toggleFollow: inside if block");
       var followRef = FirebaseFirestore.instance.collection('users').doc(user.uid).collection('following').doc(widget.storeId);
       var storeDoc = await FirebaseFirestore.instance.collection('stores').doc(widget.storeId).get();
       var storeRef = FirebaseFirestore.instance.collection('stores').doc(widget.storeId);
@@ -73,7 +71,6 @@ class _StoreViewState extends State<StoreView> {
         await storeRef.update({'follower_count': storeDoc.data()!['follower_count'] + 1});
       }
 
-      debugPrint("toggleFollow: finished nested if");
       setState(() {
         isFollowing = !isFollowing;
       });
@@ -84,61 +81,81 @@ class _StoreViewState extends State<StoreView> {
     }
   }
 
-  Widget _buildProductCard(Map<String, dynamic> data, String productId, bool isBundle, BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProductPage(productId: productId),
+  Widget _buildProductCard(Map<String, dynamic> productData, String productId, bool isBundle, BuildContext context) {
+    return FutureBuilder<QuerySnapshot>(
+      future: FirebaseFirestore.instance
+          .collection('batches')
+          .where('productId', isEqualTo: productId)
+          .where('isListed', isEqualTo: true)
+          .get(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        var batch = snapshot.data!.docs.first; // Use the first batch as default.
+        var batchData = batch.data() as Map<String, dynamic>;
+
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProductPage(productId: productId),
+              ),
+            );
+          },
+          child: Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15.0),
+              side: const BorderSide(color: Color(0xA7C957), width: 10),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Stack(
+                  children: [
+                    CachedNetworkImage(
+                      imageUrl: productData['mainImageUrl'],
+                      height: 100,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                    if (productData['discount'] != null)
+                      Positioned(
+                        top: 8,
+                        left: 8,
+                        child: Container(
+                          color: Colors.red,
+                          padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
+                          child: Text(
+                            '${productData['discount']}% off',
+                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    productData['name'],
+                    style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Text(
+                  '  PHP${batchData['price'].toStringAsFixed(2)}',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
+                ),
+                // Text(
+                //   '  ${batchData['quantity']} in stock',
+                //   style: const TextStyle(fontSize: 12, color: Colors.grey),
+                // ),
+              ],
+            ),
           ),
         );
       },
-      child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15.0),
-          side: const BorderSide(color: Color(0xA7C957), width: 10),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              children: [
-                CachedNetworkImage(
-                  imageUrl: data['mainImageUrl'],
-                  height: 100,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-                if (data['discount'] != null)
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Container(
-                      color: Colors.red,
-                      padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
-                      child: Text(
-                        '${data['discount']}% off',
-                        style: const TextStyle(color: Colors.white, fontSize: 12),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                data['name'],
-                style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
-              ),
-            ),
-            Text(
-              '  PHP${data['price'].toStringAsFixed(2)}',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -189,20 +206,20 @@ class _StoreViewState extends State<StoreView> {
                             'Cebu City, Cebu',
                             style: TextStyle(fontSize: 12, color: Colors.white),
                           ),
-                          Row(
-                            children: [
-                              const Icon(Icons.star, color: Colors.amber, size: 16),
-                              Text(
-                                '${storeDetails.storeRating?.toStringAsFixed(1)} Rating',
-                                style: const TextStyle(fontSize: 12, color: Colors.white),
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                '${storeDetails.storeFollowers ?? 0} Followers',
-                                style: const TextStyle(fontSize: 12, color: Colors.white),
-                              ),
-                            ],
-                          ),
+                          // Row(
+                          //   children: [
+                          //     const Icon(Icons.star, color: Colors.amber, size: 16),
+                          //     Text(
+                          //       '${storeDetails.storeRating?.toStringAsFixed(1)} Rating',
+                          //       style: const TextStyle(fontSize: 12, color: Colors.white),
+                          //     ),
+                          //     const SizedBox(width: 10),
+                          //     Text(
+                          //       '${storeDetails.storeFollowers ?? 0} Followers',
+                          //       style: const TextStyle(fontSize: 12, color: Colors.white),
+                          //     ),
+                          //   ],
+                          // ),
                         ],
                       ),
                       const Spacer(),
