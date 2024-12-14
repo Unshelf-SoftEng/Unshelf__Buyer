@@ -19,23 +19,31 @@ class OrderTrackingView extends StatelessWidget {
       final storeData = storeSnapshot.data();
 
       final List<Map<String?, dynamic>> orderItemsDetails = [];
-
       for (var item in orderData['orderItems']) {
-        final productSnapshot = await FirebaseFirestore.instance.collection('products').doc(item['productId']).get();
-        final productData = productSnapshot.data();
+        // Fetch batch details from orderItems
+        final batchSnapshot = await FirebaseFirestore.instance.collection('batches').doc(item['batchId']).get();
+        final batchData = batchSnapshot.data();
 
-        if (productData != null) {
-          orderItemsDetails.add({
-            'name': productData['name'],
-            'price': productData['price'],
-            'mainImageUrl': productData['mainImageUrl'],
-            'quantity': item['quantity'],
-            'quantifier': productData['quantifier'],
-          });
-        } else {}
+        if (batchData != null) {
+          // Fetch product details from batch
+          final productSnapshot = await FirebaseFirestore.instance.collection('products').doc(batchData['productId']).get();
+          final productData = productSnapshot.data();
+
+          if (productData != null) {
+            // Add the combined batch and product details to the order items list.
+            orderItemsDetails.add({
+              'name': productData['name'],
+              'price': batchData['price'],
+              'mainImageUrl': productData['mainImageUrl'] ?? '',
+              'quantity': item['quantity'],
+              'quantifier': productData['quantifier'],
+              'batchDiscount': batchData['discount'],
+              'expiryDate': batchData['expiryDate'],
+            });
+          }
+        }
       }
 
-      // Here, we ensure that the total is returned as an int by using .toInt()
       final int total = orderItemsDetails.fold<num>(0, (sum, item) => sum + item['price'] * item['quantity']).toInt();
 
       return {
@@ -107,7 +115,7 @@ class OrderTrackingView extends StatelessWidget {
                   final pickupCode = orderDetails['pickupCode'];
                   final orderItems = orderDetails['orderItems'];
                   final createdAt = orderDetails['createdAt'];
-
+                  debugPrint("items: $orderItems");
                   return GestureDetector(
                     onTap: () {
                       Navigator.push(

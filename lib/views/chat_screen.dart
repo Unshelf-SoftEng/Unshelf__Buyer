@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:unshelf_buyer/views/chat_view.dart';
@@ -21,13 +22,13 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF6E9E57), // Green color as in the image
+        backgroundColor: const Color(0xFF6E9E57),
         elevation: 0,
         toolbarHeight: 60,
         title: const Text(
           "Chat",
           style: TextStyle(
-            color: Color.fromARGB(255, 255, 255, 255), // Light green color for the text
+            color: Color.fromARGB(255, 255, 255, 255),
           ),
         ),
         actions: [
@@ -90,7 +91,7 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
                   },
                   leading: CircleAvatar(
                     radius: 24,
-                    backgroundImage: NetworkImage(data['store_image_url']),
+                    backgroundImage: CachedNetworkImageProvider(data['store_image_url']),
                   ),
                   title: Text(data['store_name']),
                 );

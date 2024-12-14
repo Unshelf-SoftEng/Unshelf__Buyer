@@ -33,20 +33,20 @@ class _RegisterViewState extends State<RegisterView> {
         'points': 0,
       });
 
-      await FirebaseFirestore.instance.collection('stores').doc(user.uid).set({
-        'store_name': storeName,
-        'store_schedule': {
-          'Monday': {'open': 'Closed', 'close': 'Closed'},
-          'Tuesday': {'open': 'Closed', 'close': 'Closed'},
-          'Wednesday': {'open': 'Closed', 'close': 'Closed'},
-          'Thursday': {'open': 'Closed', 'close': 'Closed'},
-          'Friday': {'open': 'Closed', 'close': 'Closed'},
-          'Saturday': {'open': 'Closed', 'close': 'Closed'},
-          'Sunday': {'open': 'Closed', 'close': 'Closed'},
-        },
-        'longitude': 0,
-        'latitude': 0,
-      });
+      // await FirebaseFirestore.instance.collection('stores').doc(user.uid).set({
+      //   'store_name': storeName,
+      //   'store_schedule': {
+      //     'Monday': {'open': 'Closed', 'close': 'Closed'},
+      //     'Tuesday': {'open': 'Closed', 'close': 'Closed'},
+      //     'Wednesday': {'open': 'Closed', 'close': 'Closed'},
+      //     'Thursday': {'open': 'Closed', 'close': 'Closed'},
+      //     'Friday': {'open': 'Closed', 'close': 'Closed'},
+      //     'Saturday': {'open': 'Closed', 'close': 'Closed'},
+      //     'Sunday': {'open': 'Closed', 'close': 'Closed'},
+      //   },
+      //   'longitude': 0,
+      //   'latitude': 0,
+      // });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to create user data')),

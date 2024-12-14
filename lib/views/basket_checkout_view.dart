@@ -295,28 +295,29 @@ class _CheckoutViewState extends State<CheckoutView> {
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              children: [
-                Switch(
-                    onChanged: (value) {
-                      setState(() {
-                        usePoints = !usePoints;
-                      });
+          if (points > 0)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                children: [
+                  Switch(
+                      onChanged: (value) {
+                        setState(() {
+                          usePoints = !usePoints;
+                        });
 
-                      updateTotal();
-                    },
-                    value: usePoints,
-                    activeColor: Colors.green),
-                const SizedBox(width: 10),
-                Text(
-                  "Use points: -${points.toString()}.00 PHP",
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                )
-              ],
+                        updateTotal();
+                      },
+                      value: usePoints,
+                      activeColor: Colors.green),
+                  const SizedBox(width: 10),
+                  Text(
+                    "Use points: -${points.toString()}.00 PHP",
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  )
+                ],
+              ),
             ),
-          ),
         ],
       ),
       bottomNavigationBar: BottomAppBar(

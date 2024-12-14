@@ -58,7 +58,6 @@ class ProfileView extends StatelessWidget {
           }
 
           final userData = snapshot.data!;
-          debugPrint(userData['points']);
           return Stack(
             children: [
               Column(

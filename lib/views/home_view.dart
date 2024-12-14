@@ -23,11 +23,21 @@ class _HomeViewState extends State<HomeView> {
   final TextEditingController _searchController = TextEditingController();
   List<DocumentSnapshot> _searchResults = [];
   bool _isSearching = false;
+  Map<String, double> minPrices = {};
 
   Future<List<DocumentSnapshot>> _fetchListedProducts() async {
     var batchesSnapshot = await _firestore.collection('batches').where('isListed', isEqualTo: true).get();
-
     List<String> productIds = batchesSnapshot.docs.map((doc) => doc['productId'] as String).toSet().toList();
+
+    // get minimum prices for each product
+    for (var batch in batchesSnapshot.docs) {
+      Map tempData = (batch.data() as Map);
+      String tempProductId = tempData['productId'];
+      double tempPrice = tempData['price'].toDouble();
+      if (!minPrices.containsKey(tempProductId) || tempPrice < minPrices[tempProductId]!) {
+        minPrices[tempProductId] = tempPrice;
+      }
+    }
 
     if (productIds.isEmpty) return [];
     var productsSnapshot = await _firestore.collection('products').where(FieldPath.documentId, whereIn: productIds).get();
@@ -79,7 +89,6 @@ class _HomeViewState extends State<HomeView> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => BasketView(),
-                  fullscreenDialog: true,
                 ),
               );
             },
@@ -140,12 +149,15 @@ class _HomeViewState extends State<HomeView> {
         }
 
         final products = snapshot.data!;
+
         return SingleChildScrollView(
           child: Column(
             children: [
-              _buildCarouselBanner(),
               CategoryIconsRow(),
+              _buildCarouselBanner(),
+              const SizedBox(),
               _buildProductCarousel(products),
+              const SizedBox(),
               _buildBundleDealsSection(),
             ],
           ),
@@ -159,14 +171,14 @@ class _HomeViewState extends State<HomeView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
-          padding: EdgeInsets.all(8.0),
+          padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 20.0),
           child: Text(
-            "Products",
-            style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+            "Hot Products!",
+            style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
           ),
         ),
         CarouselSlider(
-          options: CarouselOptions(height: 200.0, viewportFraction: 0.5),
+          options: CarouselOptions(height: 200.0, padEnds: true, viewportFraction: 0.4),
           items: products.map((product) {
             final data = product.data() as Map<String, dynamic>;
             final productId = product.id;
@@ -177,8 +189,7 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildProductCard(Map<String, dynamic> data, String productId, bool isBundle, BuildContext context,
-      {double? minPrice, double? maxPrice}) {
+  Widget _buildProductCard(Map<String, dynamic> data, String productId, bool isBundle, BuildContext context) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -188,43 +199,43 @@ class _HomeViewState extends State<HomeView> {
           ),
         );
       },
-      child: Card(
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15.0),
-          side: const BorderSide(color: Color(0xA7C957), width: 1),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              children: [
-                CachedNetworkImage(
-                  imageUrl: data['mainImageUrl'],
-                  height: 120,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-              ],
+      child: SingleChildScrollView(
+          child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 120,
+            width: 140,
+            clipBehavior: Clip.none,
+            margin: const EdgeInsets.only(top: 10),
+            decoration: BoxDecoration(
+              boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 5, offset: const Offset(0, 5))],
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                data['name'],
-                style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(15),
+              child: CachedNetworkImage(
+                imageUrl: data['mainImageUrl'],
+                fit: BoxFit.cover,
               ),
             ),
-            if (minPrice != null && maxPrice != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Text(
-                  'PHP ${minPrice.toStringAsFixed(2)} - ${maxPrice.toStringAsFixed(2)}',
-                  style: const TextStyle(fontSize: 14.0, color: Colors.green),
-                ),
-              ),
-          ],
-        ),
-      ),
+          ),
+          SizedBox(height: 5),
+          Text(
+            data['name'],
+            style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+          ),
+          if (isBundle)
+            Text(
+              "PHP ${data['price']!.toStringAsFixed(2)}",
+              style: const TextStyle(fontSize: 14.0, color: Colors.grey),
+            )
+          else
+            Text(
+              "PHP ${minPrices[productId]!.toStringAsFixed(2)}",
+              style: const TextStyle(fontSize: 14.0, color: Colors.grey),
+            ),
+        ],
+      )),
     );
   }
 
@@ -356,14 +367,14 @@ class _HomeViewState extends State<HomeView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Padding(
-              padding: EdgeInsets.all(8.0),
+              padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
               child: Text(
-                "Bundle Deals",
-                style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+                "Bundle Deals!",
+                style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
               ),
             ),
             CarouselSlider(
-              options: CarouselOptions(height: 200.0, viewportFraction: 0.5),
+              options: CarouselOptions(height: 200.0, viewportFraction: 0.4),
               items: bundles.map((bundle) {
                 final data = bundle.data() as Map<String, dynamic>;
                 final bundleId = bundle.id;
@@ -378,6 +389,7 @@ class _HomeViewState extends State<HomeView> {
 
   Future<List<DocumentSnapshot>> _fetchBundles() async {
     final snapshot = await _firestore.collection('bundles').get();
+
     return snapshot.docs;
   }
 }

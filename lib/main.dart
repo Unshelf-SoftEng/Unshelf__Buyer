@@ -38,7 +38,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => OrderViewModel()), // OrderViewModel Provider
         // Add more providers here
       ],
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
@@ -52,8 +52,15 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Unshelf',
       theme: ThemeData(
+        scaffoldBackgroundColor: Colors.white,
         appBarTheme: const AppBarTheme(iconTheme: IconThemeData(color: Colors.white)),
-        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFF386641)),
+        bottomAppBarTheme: const BottomAppBarTheme(color: Colors.white, shadowColor: Colors.grey, elevation: 20),
+        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+          backgroundColor: Colors.white,
+          selectedItemColor: Colors.green,
+          unselectedItemColor: Colors.grey,
+        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF386641)),
         useMaterial3: true,
         textTheme:
             GoogleFonts.jostTextTheme(Theme.of(context).textTheme).apply(bodyColor: const Color.fromARGB(255, 56, 102, 65)),

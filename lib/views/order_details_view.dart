@@ -167,69 +167,69 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
               ),
               const SizedBox(height: 10),
               // Products List View (no Expanded around it)
-              // ListView.builder(
-              //   itemCount: widget.orderDetails['orderItems'].length,
-              //   shrinkWrap: true, // Important for ListView inside scrollable widget
-              //   physics: NeverScrollableScrollPhysics(), // Disable internal scrolling
-              //   itemBuilder: (context, index) {
-              //     return Card(
-              //       elevation: 2,
-              //       shape: RoundedRectangleBorder(
-              //         borderRadius: BorderRadius.circular(10),
-              //       ),
-              //       child: Row(
-              //         children: [
-              //           ClipRRect(
-              //             borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
-              //             child: Image.network(
-              //               [order].products[index].product!.mainImageUrl,
-              //               width: 80, // Reduced the size of the image
-              //               height: 80, // Reduced the size of the image
-              //               fit: BoxFit.cover,
-              //             ),
-              //           ),
-              //           Expanded(
-              //             child: Padding(
-              //               padding: const EdgeInsets.all(8.0),
-              //               child: Column(
-              //                 crossAxisAlignment: CrossAxisAlignment.start,
-              //                 children: [
-              //                   Text(
-              //                     order.products[index].product!.name,
-              //                     style: const TextStyle(
-              //                       fontSize: 16,
-              //                       fontWeight: FontWeight.bold,
-              //                       color: Colors.black87,
-              //                     ),
-              //                     overflow: TextOverflow.ellipsis,
-              //                   ),
-              //                   const SizedBox(height: 4),
-              //                 ],
-              //               ),
-              //             ),
-              //           ),
-              //           // Spacer for right-alignment
-              //           Padding(
-              //             padding: const EdgeInsets.all(8.0),
-              //             child: Column(
-              //               crossAxisAlignment: CrossAxisAlignment.end,
-              //               children: [
-              //                 Text(
-              //                   'x ${order.items[index].quantity} ${order.products[index].quantifier}',
-              //                   style: const TextStyle(
-              //                     fontSize: 16,
-              //                     fontWeight: FontWeight.bold,
-              //                     color: Colors.black87,
-              //                   ),
-              //                 ),
-              //               ],
-              //             ),
-              //           ),
-              //         ],
-              //       ),
-              //     );
-              //   },
-              // ),
+              ListView.builder(
+                itemCount: widget.orderDetails['orderItems'].length,
+                shrinkWrap: true, // Important for ListView inside scrollable widget
+                physics: NeverScrollableScrollPhysics(), // Disable internal scrolling
+                itemBuilder: (context, index) {
+                  return Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
+                          child: Image.network(
+                            widget.orderDetails['orderItems'][index]['mainImageUrl'],
+                            width: 80, // Reduced the size of the image
+                            height: 80, // Reduced the size of the image
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.orderDetails['orderItems'][index]['name'],
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                              ],
+                            ),
+                          ),
+                        ),
+                        // Spacer for right-alignment
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                'x ${widget.orderDetails['orderItems'][index]['quantity']} ${widget.orderDetails['orderItems'][index]['quantifier']}',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
               // Order Details Section
 
               if (widget.orderDetails['status'] == 'Ready') ...[
