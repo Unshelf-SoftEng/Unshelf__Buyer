@@ -76,4 +76,6 @@ class CategoryItem {
   final String categoryKey;
 
   CategoryItem(this.name, this.iconPath, this.categoryKey);
+
+  String get categoryName => name;
 }

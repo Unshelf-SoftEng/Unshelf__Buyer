@@ -17,6 +17,9 @@ class FollowingView extends StatelessWidget {
   Widget _buildStoreCard(Map<String, dynamic> data, String storeId, BuildContext context) {
     return Column(
       children: [
+        const SizedBox(
+          height: 20,
+        ),
         GestureDetector(
           onTap: () {
             Navigator.push(
@@ -37,8 +40,8 @@ class FollowingView extends StatelessWidget {
               children: [
                 // Store Image
                 Container(
-                  width: 90,
-                  height: 90,
+                  width: 120,
+                  height: 100,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 5, offset: const Offset(0, 3))],

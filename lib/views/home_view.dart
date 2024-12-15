@@ -206,8 +206,10 @@ class _HomeViewState extends State<HomeView> {
             children: [
               CategoryIconsRow(),
               _buildCarouselBanner(),
+              Divider(color: Colors.grey[200]),
               const SizedBox(),
               _buildProductCarousel(products),
+              Divider(color: Colors.grey[200]),
               _buildBundleDealsSection(),
             ],
           ),

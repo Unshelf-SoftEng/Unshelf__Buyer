@@ -70,6 +70,9 @@ class FavoritesView extends StatelessWidget {
       BuildContext context, Map<String, double> minPrices) {
     return Column(
       children: [
+        const SizedBox(
+          height: 20,
+        ),
         GestureDetector(
           onTap: () {
             Navigator.push(
@@ -90,8 +93,8 @@ class FavoritesView extends StatelessWidget {
               children: [
                 // Product Image
                 Container(
-                  width: 90,
-                  height: 90,
+                  width: 120,
+                  height: 100,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 5, offset: const Offset(0, 0))],
@@ -107,7 +110,6 @@ class FavoritesView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 30),
-
                 // Text Details
                 Expanded(
                   child: Column(
@@ -164,11 +166,12 @@ class FavoritesView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF6E9E57),
         elevation: 0,
-        toolbarHeight: 60,
+        toolbarHeight: 80,
         title: const Text(
           "My Favorites",
           style: TextStyle(
             color: Colors.white,
+            fontSize: 25,
           ),
         ),
         bottom: PreferredSize(
