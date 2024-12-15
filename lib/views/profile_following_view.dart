@@ -106,12 +106,10 @@ class FollowingView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF6E9E57),
         elevation: 0,
-        toolbarHeight: 60,
+        toolbarHeight: 65,
         title: const Text(
           "Following",
-          style: TextStyle(
-            color: Colors.white,
-          ),
+          style: TextStyle(color: Colors.white, fontSize: 25),
         ),
         bottom: PreferredSize(
             preferredSize: const Size.fromHeight(4.0),

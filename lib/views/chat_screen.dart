@@ -24,10 +24,11 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
       appBar: AppBar(
         backgroundColor: const Color(0xFF6E9E57),
         elevation: 0,
-        toolbarHeight: 60,
+        toolbarHeight: 65,
         title: const Text(
           "Chat",
           style: TextStyle(
+            fontSize: 25.0,
             color: Color.fromARGB(255, 255, 255, 255),
           ),
         ),

@@ -166,7 +166,7 @@ class FavoritesView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF6E9E57),
         elevation: 0,
-        toolbarHeight: 80,
+        toolbarHeight: 65,
         title: const Text(
           "My Favorites",
           style: TextStyle(

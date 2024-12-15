@@ -72,11 +72,19 @@ class OrderTrackingView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF6E9E57),
         elevation: 0,
-        toolbarHeight: 60,
+        toolbarHeight: 65,
         title: const Text(
-          "Order Tracking",
+          "Order History",
           style: TextStyle(
             color: Colors.white,
+            fontSize: 25,
+          ),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(4.0),
+          child: Container(
+            color: const Color.fromARGB(255, 200, 221, 150),
+            height: 6.0,
           ),
         ),
       ),

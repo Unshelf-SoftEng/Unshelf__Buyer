@@ -148,13 +148,17 @@ class _BasketViewState extends State<BasketView> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF6E9E57),
         elevation: 0,
-        toolbarHeight: 60,
+        toolbarHeight: 65,
         title: const Text(
           "Basket",
-          style: TextStyle(
-            color: Colors.white,
-          ),
+          style: TextStyle(color: Colors.white, fontSize: 25.0),
         ),
+        bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(4.0),
+            child: Container(
+              color: const Color.fromARGB(255, 200, 221, 150),
+              height: 6.0,
+            )),
       ),
       body: Stack(
         children: [
@@ -227,7 +231,7 @@ class _BasketViewState extends State<BasketView> {
                                   if (value == true) {
                                     if (selectedSellerId == null || selectedSellerId == sellerId) {
                                       selectedBatchIds.add(batchId);
-                                      selectedSellerId = sellerId; 
+                                      selectedSellerId = sellerId;
                                     } else {
                                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                                         content: Text('You can only order from one store at a time.'),

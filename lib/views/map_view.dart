@@ -131,13 +131,17 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
       appBar: AppBar(
         backgroundColor: const Color(0xFF6E9E57),
         elevation: 0,
-        toolbarHeight: 60,
+        toolbarHeight: 65,
         title: const Text(
           "Near Me",
-          style: TextStyle(
-            color: Colors.white,
-          ),
+          style: TextStyle(color: Colors.white, fontSize: 25.0),
         ),
+        bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(4.0),
+            child: Container(
+              color: const Color.fromARGB(255, 200, 221, 150),
+              height: 6.0,
+            )),
       ),
       body: _isLoading
           ? const Center(

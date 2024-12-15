@@ -48,11 +48,12 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF6E9E57),
         elevation: 0,
-        toolbarHeight: 60,
+        toolbarHeight: 65,
         title: const Text(
           "Order Details",
           style: TextStyle(
             color: Colors.white,
+            fontSize: 25.0,
           ),
         ),
       ),

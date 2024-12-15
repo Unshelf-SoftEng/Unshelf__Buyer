@@ -203,8 +203,8 @@ class _CheckoutViewState extends State<CheckoutView> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF6E9E57),
         elevation: 0,
-        toolbarHeight: 60,
-        title: const Text("Checkout", style: TextStyle(color: Colors.white)),
+        toolbarHeight: 65,
+        title: const Text("Checkout", style: TextStyle(color: Colors.white, fontSize: 25.0)),
         actions: [
           IconButton(
             icon: const CircleAvatar(

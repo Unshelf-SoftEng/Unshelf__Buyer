@@ -39,12 +39,10 @@ class _ChatViewState extends State<ChatView> with AutomaticKeepAliveClientMixin 
       appBar: AppBar(
         backgroundColor: const Color(0xFF6E9E57),
         elevation: 0,
-        toolbarHeight: 60,
+        toolbarHeight: 65,
         title: Text(
           widget.receiverName,
-          style: const TextStyle(
-            color: Colors.white,
-          ),
+          style: const TextStyle(color: Colors.white, fontSize: 25.0),
         ),
         bottom: PreferredSize(
             preferredSize: const Size.fromHeight(4.0),
