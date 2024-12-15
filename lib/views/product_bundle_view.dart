@@ -17,6 +17,7 @@ class BundleView extends StatefulWidget {
 }
 
 class _BundleViewState extends State<BundleView> {
+  int _quantity = 1;
   Map<String, dynamic>? sellerData;
 
   @override
@@ -158,8 +159,31 @@ class _BundleViewState extends State<BundleView> {
                       ),
                       const SizedBox(height: 8.0),
                       Text(
-                        'This is a bundle of products that offers great value. Enjoy a variety of items at a discounted price.',
+                        bundleData['description'],
                         style: const TextStyle(fontSize: 16),
+                      ),
+                      const SizedBox(height: 8.0),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Quantity:', style: TextStyle(fontSize: 18)),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.remove),
+                                onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
+                              ),
+                              Text(
+                                _quantity.toString(),
+                                style: const TextStyle(fontSize: 18),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.add),
+                                onPressed: () => setState(() => _quantity++),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 16.0),
 
@@ -265,7 +289,7 @@ class _BundleViewState extends State<BundleView> {
       bottomNavigationBar: BottomAppBar(
         child: Center(
           child: ElevatedButton(
-            onPressed: () => _addToCart(context, widget.bundleId, 1),
+            onPressed: () => _addToCart(context, widget.bundleId, _quantity),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green[500],
               shape: RoundedRectangleBorder(
@@ -287,25 +311,24 @@ Future<void> _addToCart(BuildContext context, String bundleId, int quantity) asy
   try {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      DocumentReference userBasketRef = FirebaseFirestore.instance.collection('baskets').doc(user.uid);
-      DocumentReference cartItemRef = userBasketRef.collection('cart_items').doc(bundleId);
-
-      DocumentSnapshot cartItemSnapshot = await cartItemRef.get();
-
-      if (cartItemSnapshot.exists) {
-        await cartItemRef.update({'quantity': FieldValue.increment(quantity)});
-      } else {
-        await cartItemRef.set({'quantity': quantity});
-      }
+      await FirebaseFirestore.instance
+          .collection('baskets')
+          .doc(user.uid)
+          .collection('cart_items')
+          .doc(bundleId)
+          .set({'quantity': quantity});
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bundle added to cart')),
+        const SnackBar(content: Text('Added to Cart')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You need to be logged in to add items to cart')),
       );
     }
   } catch (e) {
-    print('Error adding to cart: $e');
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Error adding to cart')),
+      SnackBar(content: Text('Failed to add to cart: $e')),
     );
   }
 }

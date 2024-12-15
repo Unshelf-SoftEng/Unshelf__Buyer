@@ -54,7 +54,6 @@ class _BasketViewState extends State<BasketView> {
       });
 
       final basketSnapshot = await FirebaseFirestore.instance.collection('baskets').doc(user!.uid).collection('cart_items').get();
-
       final batchIds = basketSnapshot.docs.map((doc) => doc.id).toList();
       final quantities = {for (var doc in basketSnapshot.docs) doc.id: doc['quantity']};
 
@@ -315,7 +314,7 @@ class _BasketViewState extends State<BasketView> {
               }).toList(),
             ),
           if (isLoading)
-            Center(
+            const Center(
               child: CircularProgressIndicator(),
             ),
         ],
