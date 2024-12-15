@@ -78,6 +78,7 @@ class _LoginViewState extends State<LoginView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: const Text('Sign In'),
       ),
       resizeToAvoidBottomInset: false,
@@ -122,7 +123,7 @@ class _LoginViewState extends State<LoginView> {
               const Text("Don't have an account?"),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => const RegisterView()));
+                  Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const RegisterView()));
                 },
                 child: const Text('Sign Up'),
               ),

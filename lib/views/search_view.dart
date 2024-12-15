@@ -177,47 +177,6 @@ class _SearchViewState extends State<SearchView> {
     );
   }
 
-  void _onItemTapped(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
-              return SearchView();
-            },
-            transitionDuration: Duration.zero,
-            reverseTransitionDuration: Duration.zero,
-          ),
-        );
-        break;
-      case 1:
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
-              return MapPage();
-            },
-            transitionDuration: Duration.zero,
-            reverseTransitionDuration: Duration.zero,
-          ),
-        );
-        break;
-      case 2:
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
-              return ProfileView();
-            },
-            transitionDuration: Duration.zero,
-            reverseTransitionDuration: Duration.zero,
-          ),
-        );
-        break;
-    }
-  }
-
   Future<void> _performSearch(String query) async {
     if (query.isNotEmpty) {
       // Fetch all batches where `isListed` is true

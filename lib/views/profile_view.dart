@@ -160,19 +160,37 @@ class ProfileView extends StatelessWidget {
       case 0:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomeView()),
+          PageRouteBuilder(
+            pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
+              return HomeView();
+            },
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
+          ),
         );
         break;
       case 1:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => MapPage()),
+          PageRouteBuilder(
+            pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
+              return MapPage();
+            },
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
+          ),
         );
         break;
       case 2:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => ProfileView()),
+          PageRouteBuilder(
+            pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
+              return ProfileView();
+            },
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
+          ),
         );
         break;
     }

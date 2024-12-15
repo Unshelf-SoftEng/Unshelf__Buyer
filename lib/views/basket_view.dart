@@ -332,10 +332,20 @@ class _BasketViewState extends State<BasketView> {
                           .where((item) => selectedBatchIds.contains(item['batchId']))
                           .toList();
 
+                      final cleanBasketItems = selectedItems.map((item) {
+                        return {
+                          'batchId': item['batchId'],
+                          'productName': item['productName'],
+                          'productMainImageUrl': item['productMainImageUrl'],
+                          'batchPrice':
+                              (item['batchPrice'] * (1 - item['batchDiscount'] / 100) as num).toDouble(), // Explicit double cast
+                          'quantity': item['quantity'],
+                        };
+                      }).toList();
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => CheckoutView(basketItems: selectedItems, sellerId: selectedSellerId),
+                          builder: (_) => CheckoutView(basketItems: cleanBasketItems, sellerId: selectedSellerId),
                         ),
                       );
                     },

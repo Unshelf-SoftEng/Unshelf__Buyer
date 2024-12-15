@@ -74,6 +74,7 @@ class _CheckoutViewState extends State<CheckoutView> {
 
   void calculateTotalAmount() {
     totalRegular = (widget.basketItems.fold(0, (sum, item) => sum + item['batchPrice'] * item['quantity']));
+    debugPrint("Huh? ${totalRegular}");
     totalAmount = totalRegular;
   }
 
@@ -278,7 +279,8 @@ class _CheckoutViewState extends State<CheckoutView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(item['productName'], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                            Text('₱${item['batchPrice']} x ${item['quantity']}', style: const TextStyle(color: Colors.grey)),
+                            Text('₱${item['batchPrice'].toStringAsFixed(2)} x ${item['quantity']}',
+                                style: const TextStyle(color: Colors.grey)),
                           ],
                         ),
                       ),
@@ -302,7 +304,6 @@ class _CheckoutViewState extends State<CheckoutView> {
                         setState(() {
                           usePoints = !usePoints;
                         });
-
                         updateTotal();
                       },
                       value: usePoints,
