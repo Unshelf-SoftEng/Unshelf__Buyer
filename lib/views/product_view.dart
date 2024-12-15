@@ -166,7 +166,7 @@ class _ProductPageState extends State<ProductPage> {
                         children: [
                           Text(
                             productData['name'],
-                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                           IconButton(
                             icon: Icon(
@@ -177,7 +177,6 @@ class _ProductPageState extends State<ProductPage> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8.0),
                       if (_batches != null && _batches!.isNotEmpty)
                         DropdownButton<DocumentSnapshot>(
                           value: _selectedBatch,
@@ -193,7 +192,6 @@ class _ProductPageState extends State<ProductPage> {
                             );
                           }).toList(),
                         ),
-                      const SizedBox(height: 16.0),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -234,7 +232,7 @@ class _ProductPageState extends State<ProductPage> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16.0),
+                      const SizedBox(height: 5.0),
                       Text(
                         'Expiration: ${DateFormat('MMMM d, yyyy').format((batchData!['expiryDate']).toDate())}',
                         style: const TextStyle(fontSize: 16, color: Colors.green),

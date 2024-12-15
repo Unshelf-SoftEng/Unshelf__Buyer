@@ -311,7 +311,7 @@ class _StoreViewState extends State<StoreView> {
                 ),
 
                 // Category Listings: Offers, Grocery, Fruits, Veggies, Baked
-                for (var category in ['Offers', 'Grrocery', 'Fruits', 'Vegetables', 'Baked Goods'])
+                for (var category in ['Offers', 'Grocery', 'Fruits', 'Vegetables', 'Baked Goods'])
                   StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
                         .collection('products')
