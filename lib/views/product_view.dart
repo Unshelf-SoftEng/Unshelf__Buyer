@@ -236,7 +236,7 @@ class _ProductPageState extends State<ProductPage> {
                       ),
                       const SizedBox(height: 16.0),
                       Text(
-                        'Expiration: ${DateFormat('MMMM d, yyyy').format((batchData?['expiryDate'] as Timestamp).toDate())}',
+                        'Expiration: ${DateFormat('MMMM d, yyyy').format((batchData?['expiryDate']).toDate())}',
                         style: const TextStyle(fontSize: 16, color: Colors.green),
                       ),
                       const SizedBox(height: 8.0),

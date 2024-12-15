@@ -6,6 +6,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unshelf_buyer/views/basket_view.dart';
 import 'package:unshelf_buyer/views/product_bundle_view.dart';
+import 'package:unshelf_buyer/views/profile_favorites_view.dart';
+import 'package:unshelf_buyer/views/search_view.dart';
 import 'package:unshelf_buyer/widgets/category_row_widget.dart';
 import 'package:unshelf_buyer/views/chat_screen.dart';
 import 'package:unshelf_buyer/views/map_view.dart';
@@ -52,31 +54,74 @@ class _HomeViewState extends State<HomeView> {
         backgroundColor: const Color(0xFF6E9E57),
         elevation: 0,
         toolbarHeight: 80,
-        title: Container(
-          height: 50,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 5, offset: const Offset(0, 0))],
-          ),
-          child: Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Icon(Icons.search, color: Colors.grey[600]),
+        title: GestureDetector(
+          onTap: () {
+            // Navigate to SearchView when the search bar is tapped
+            Navigator.push(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
+                  return SearchView();
+                },
+                transitionDuration: Duration.zero,
+                reverseTransitionDuration: Duration.zero,
               ),
-              Expanded(
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: "Search",
-                    hintStyle: TextStyle(color: Colors.grey[600]),
-                    border: InputBorder.none,
-                  ),
-                  onSubmitted: (query) => _performSearch(query),
+            );
+          },
+          child: Container(
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 5,
+                  offset: const Offset(0, 0),
+                )
+              ],
+            ),
+            child: Row(
+              children: [
+                // Search icon
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Icon(Icons.search, color: Colors.grey[600]),
                 ),
-              ),
-            ],
+                Expanded(
+                  child: Text(
+                    "Search",
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                ),
+                // Divider
+                Container(
+                  height: 24,
+                  width: 1,
+                  color: Colors.grey[300],
+                ),
+                // Favorites icon
+                GestureDetector(
+                  onTap: () {
+                    // Navigate to Favorites Page
+                    Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
+                          return FavoritesView();
+                        },
+                        transitionDuration: Duration.zero,
+                        reverseTransitionDuration: Duration.zero,
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Icon(Icons.favorite_border, color: Colors.grey[600]),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         bottom: PreferredSize(
@@ -87,7 +132,8 @@ class _HomeViewState extends State<HomeView> {
           ),
         ),
       ),
-      body: _isSearching ? _buildSearchResults() : _buildHomeContent(),
+
+      body: _buildHomeContent(),
 
       // Floating Action Buttons
       floatingActionButton: Column(
@@ -177,7 +223,7 @@ class _HomeViewState extends State<HomeView> {
         const Padding(
           padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 20.0),
           child: Text(
-            "Hot Products!",
+            "Hot Products",
             style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
           ),
         ),
@@ -216,9 +262,9 @@ class _HomeViewState extends State<HomeView> {
             width: 140,
             clipBehavior: Clip.none,
             margin: const EdgeInsets.only(top: 10),
-            decoration: BoxDecoration(
-              boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 5, offset: const Offset(0, 5))],
-            ),
+            // decoration: BoxDecoration(
+            //   boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 1, offset: const Offset(0, 5))],
+            // ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(15),
               child: CachedNetworkImage(
@@ -228,9 +274,14 @@ class _HomeViewState extends State<HomeView> {
             ),
           ),
           const SizedBox(height: 5),
-          Text(
-            data['name'],
-            style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold, color: Colors.black),
+          Wrap(
+            alignment: WrapAlignment.start,
+            children: [
+              Text(
+                data['name'],
+                style: const TextStyle(fontSize: 15.0, fontWeight: FontWeight.bold, color: Colors.black),
+              ),
+            ],
           ),
           if (isBundle)
             Text(
@@ -286,45 +337,6 @@ class _HomeViewState extends State<HomeView> {
         );
         break;
     }
-  }
-
-  Future<void> _performSearch(String query) async {
-    if (query.isNotEmpty) {
-      setState(() {
-        _isSearching = true;
-      });
-
-      final searchResults = await _firestore
-          .collection('products')
-          .where('name', isGreaterThanOrEqualTo: query)
-          .where('name', isLessThanOrEqualTo: '$query\uf8ff')
-          .get();
-
-      setState(() {
-        _searchResults = searchResults.docs;
-      });
-    }
-  }
-
-  Widget _buildSearchResults() {
-    if (_searchResults.isEmpty) {
-      return const Center(
-        child: Text("No results found."),
-      );
-    }
-
-    return ListView.builder(
-      itemCount: _searchResults.length,
-      itemBuilder: (context, index) {
-        final data = _searchResults[index].data() as Map<String, dynamic>;
-        final productId = _searchResults[index].id;
-
-        return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: _buildProductCard(data, productId, false, context),
-        );
-      },
-    );
   }
 
   Widget _buildCarouselBanner() {
@@ -395,7 +407,7 @@ class _HomeViewState extends State<HomeView> {
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
               child: Text(
-                "Bundle Deals!",
+                "Bundle Deals",
                 style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
               ),
             ),
