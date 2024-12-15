@@ -17,6 +17,7 @@ class _BasketViewState extends State<BasketView> {
   Set<String> selectedBatchIds = {};
   double total = 0.0;
   String? selectedSellerId;
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -25,61 +26,101 @@ class _BasketViewState extends State<BasketView> {
     fetchBasketItems();
   }
 
+  void toggleStoreSelection(String sellerId, bool isSelected) {
+    final storeItems = groupedBasketItems[sellerId];
+    if (storeItems != null) {
+      setState(() {
+        if (isSelected) {
+          storeItems.forEach((item) => selectedBatchIds.add(item['batchId']));
+          selectedSellerId = sellerId; // Update the selected seller ID
+        } else {
+          storeItems.forEach((item) => selectedBatchIds.remove(item['batchId']));
+
+          if (selectedBatchIds.isEmpty) {
+            selectedSellerId = null;
+          }
+        }
+        updateTotal();
+      });
+    }
+  }
+
   void fetchBasketItems() async {
     if (user == null) return;
 
-    final basketSnapshot = await FirebaseFirestore.instance.collection('baskets').doc(user!.uid).collection('cart_items').get();
+    try {
+      setState(() {
+        isLoading = true;
+      });
 
-    Map<String, List<Map<String, dynamic>>> groupedItems = {};
+      final basketSnapshot = await FirebaseFirestore.instance.collection('baskets').doc(user!.uid).collection('cart_items').get();
 
-    for (var doc in basketSnapshot.docs) {
-      final batchId = doc.id;
-      final quantity = doc['quantity'];
+      final batchIds = basketSnapshot.docs.map((doc) => doc.id).toList();
+      final quantities = {for (var doc in basketSnapshot.docs) doc.id: doc['quantity']};
 
-      // Fetch batch details
-      final batchSnapshot = await FirebaseFirestore.instance.collection('batches').doc(batchId).get();
+      // Fetch all batch details in a single query
+      final batchSnapshots =
+          await FirebaseFirestore.instance.collection('batches').where(FieldPath.documentId, whereIn: batchIds).get();
 
-      if (batchSnapshot.exists) {
-        final batchData = batchSnapshot.data();
-        final productId = batchData?['productId'];
-        final sellerId = batchData?['sellerId'];
+      final productIds = batchSnapshots.docs.map((doc) => doc['productId']).toSet();
+      final sellerIds = batchSnapshots.docs.map((doc) => doc['sellerId']).toSet();
 
-        // Fetch product details
-        final productSnapshot = await FirebaseFirestore.instance.collection('products').doc(productId).get();
+      // Fetch all product and store details concurrently
+      final productSnapshotsFuture =
+          FirebaseFirestore.instance.collection('products').where(FieldPath.documentId, whereIn: productIds.toList()).get();
 
-        if (productSnapshot.exists) {
-          final productData = productSnapshot.data();
+      final storeSnapshotsFuture =
+          FirebaseFirestore.instance.collection('stores').where(FieldPath.documentId, whereIn: sellerIds.toList()).get();
 
-          // Fetch store details
-          final storeSnapshot = await FirebaseFirestore.instance.collection('stores').doc(sellerId).get();
+      final productSnapshots = await productSnapshotsFuture;
+      final storeSnapshots = await storeSnapshotsFuture;
 
-          if (storeSnapshot.exists) {
-            final storeData = storeSnapshot.data();
+      final products = {for (var doc in productSnapshots.docs) doc.id: doc.data()};
+      final stores = {for (var doc in storeSnapshots.docs) doc.id: doc.data()};
 
-            if (!groupedItems.containsKey(sellerId)) {
-              groupedItems[sellerId] = [];
-            }
+      Map<String, List<Map<String, dynamic>>> groupedItems = {};
 
-            groupedItems[sellerId]!.add({
-              'batchId': batchId,
-              'quantity': quantity,
-              'batchPrice': batchData?['price'],
-              'batchDiscount': batchData?['discount'],
-              'batchStock': batchData?['stock'],
-              'productName': productData?['name'],
-              'productMainImageUrl': productData?['mainImageUrl'],
-              'productQuantifier': productData?['quantifier'],
-              'storeName': storeData?['store_name'],
-              'storeImageUrl': storeData?['store_image_url'],
-            });
+      for (var batchDoc in batchSnapshots.docs) {
+        final batchData = batchDoc.data();
+        final batchId = batchDoc.id;
+        final quantity = quantities[batchId] ?? 0;
+
+        final productId = batchData['productId'];
+        final sellerId = batchData['sellerId'];
+
+        final productData = products[productId];
+        final storeData = stores[sellerId];
+
+        if (productData != null && storeData != null) {
+          if (!groupedItems.containsKey(sellerId)) {
+            groupedItems[sellerId] = [];
           }
+
+          groupedItems[sellerId]!.add({
+            'batchId': batchId,
+            'quantity': quantity,
+            'batchPrice': batchData['price'],
+            'batchDiscount': batchData['discount'],
+            'batchStock': batchData['stock'],
+            'productName': productData['name'],
+            'productMainImageUrl': productData['mainImageUrl'],
+            'productQuantifier': productData['quantifier'],
+            'storeName': storeData['store_name'],
+            'storeImageUrl': storeData['store_image_url'],
+          });
         }
       }
-    }
 
-    setState(() {
-      groupedBasketItems = groupedItems;
-    });
+      setState(() {
+        groupedBasketItems = groupedItems;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Error fetching basket items: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   void updateTotal() {
@@ -101,28 +142,6 @@ class _BasketViewState extends State<BasketView> {
     });
   }
 
-  void toggleStoreSelection(String sellerId, bool isSelected) {
-    final storeItems = groupedBasketItems[sellerId];
-    if (storeItems != null) {
-      setState(() {
-        if (isSelected) {
-          // Add all items from the store to the selected list
-          storeItems.forEach((item) => selectedBatchIds.add(item['batchId']));
-          selectedSellerId = sellerId; // Update the selected seller ID
-        } else {
-          // Remove all items from the store from the selected list
-          storeItems.forEach((item) => selectedBatchIds.remove(item['batchId']));
-
-          // Reset selectedSellerId only if no items remain selected
-          if (selectedBatchIds.isEmpty) {
-            selectedSellerId = null;
-          }
-        }
-        updateTotal();
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -136,187 +155,166 @@ class _BasketViewState extends State<BasketView> {
             color: Colors.white,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const CircleAvatar(
-              backgroundColor: Colors.white,
-              child: Icon(
-                Icons.message,
-                color: Color(0xFF6E9E57),
-              ),
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChatScreen(),
-                  fullscreenDialog: true,
-                ),
-              );
-            },
-          ),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(4.0),
-          child: Container(
-            color: const Color.fromARGB(255, 200, 221, 150),
-            height: 6.0,
-          ),
-        ),
       ),
-      body: ListView(
-        children: groupedBasketItems.entries.map((entry) {
-          final sellerId = entry.key;
-          final storeItems = entry.value;
-          final storeName = storeItems[0]['storeName'];
-          final storeImageUrl = storeItems[0]['storeImageUrl'];
+      body: Stack(
+        children: [
+          if (!isLoading)
+            ListView(
+              children: groupedBasketItems.entries.map((entry) {
+                final sellerId = entry.key;
+                final storeItems = entry.value;
+                final storeName = storeItems[0]['storeName'];
+                final storeImageUrl = storeItems[0]['storeImageUrl'];
 
-          final allStoreItemsSelected = storeItems.every((item) => selectedBatchIds.contains(item['batchId']));
-          final someStoreItemsSelected = storeItems.any((item) => selectedBatchIds.contains(item['batchId']));
+                final allStoreItemsSelected = storeItems.every((item) => selectedBatchIds.contains(item['batchId']));
+                final someStoreItemsSelected = storeItems.any((item) => selectedBatchIds.contains(item['batchId']));
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GestureDetector(
-                onTap: () {
-                  if (sellerId != null) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => StoreView(storeId: sellerId),
-                      ),
-                    );
-                  }
-                },
-                child: Row(
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Checkbox(
-                      value: allStoreItemsSelected,
-                      tristate: someStoreItemsSelected && !allStoreItemsSelected,
-                      onChanged: (isChecked) {
-                        toggleStoreSelection(sellerId, isChecked ?? false);
+                    GestureDetector(
+                      onTap: () {
+                        if (sellerId != null) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => StoreView(storeId: sellerId),
+                            ),
+                          );
+                        }
                       },
-                    ),
-                    CircleAvatar(
-                      backgroundImage: sellerId != null ? CachedNetworkImageProvider(storeImageUrl) : null,
-                      radius: 20,
-                    ),
-                    const SizedBox(width: 8.0),
-                    Text(
-                      sellerId != null ? storeName : 'Loading...',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ],
-                ),
-              ),
-              ...storeItems.map((item) {
-                final batchId = item['batchId'];
-                final productName = item['productName'];
-                final productMainImageUrl = item['productMainImageUrl'];
-                final productQuantifier = item['productQuantifier'];
-                final batchPrice = item['batchPrice'];
-                final batchDiscount = item['batchDiscount'] ?? 0;
-                final priceAfterDiscount = batchPrice * (1 - batchDiscount / 100);
-                final batchStock = item['batchStock'];
-                final batchQuantity = item['quantity'];
-
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Checkbox(
-                        value: selectedBatchIds.contains(batchId),
-                        onChanged: (value) {
-                          setState(() {
-                            if (value == true) {
-                              // Add the batch to selectedBatchIds
-                              if (selectedSellerId == null || selectedSellerId == sellerId) {
-                                selectedBatchIds.add(batchId);
-                                selectedSellerId = sellerId; // Update the selected seller ID
-                              } else {
-                                // Show error if trying to select from a different seller
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                  content: Text('You can only order from one store at a time.'),
-                                ));
-                              }
-                            } else {
-                              // Remove the batch from selectedBatchIds
-                              selectedBatchIds.remove(batchId);
-
-                              // Reset selectedSellerId only if no items remain selected
-                              final storeItems = groupedBasketItems[sellerId];
-                              final storeBatchesStillSelected = storeItems!.any(
-                                (item) => selectedBatchIds.contains(item['batchId']),
-                              );
-
-                              if (!storeBatchesStillSelected) {
-                                selectedSellerId = null;
-                              }
-                            }
-                            updateTotal();
-                          });
-                        },
-                      ),
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          image: DecorationImage(
-                            image: NetworkImage(productMainImageUrl),
-                            fit: BoxFit.cover,
+                      child: Row(
+                        children: [
+                          Checkbox(
+                            value: allStoreItemsSelected,
+                            tristate: someStoreItemsSelected && !allStoreItemsSelected,
+                            onChanged: (isChecked) {
+                              toggleStoreSelection(sellerId, isChecked ?? false);
+                            },
                           ),
-                        ),
+                          CircleAvatar(
+                            backgroundImage: sellerId != null ? CachedNetworkImageProvider(storeImageUrl) : null,
+                            radius: 20,
+                          ),
+                          const SizedBox(width: 8.0),
+                          Text(
+                            sellerId != null ? storeName : 'Loading...',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
+                    ),
+                    ...storeItems.map((item) {
+                      final batchId = item['batchId'];
+                      final productName = item['productName'];
+                      final productMainImageUrl = item['productMainImageUrl'];
+                      final productQuantifier = item['productQuantifier'];
+                      final batchPrice = item['batchPrice'];
+                      final batchDiscount = item['batchDiscount'] ?? 0;
+                      final priceAfterDiscount = batchPrice * (1 - batchDiscount / 100);
+                      final batchStock = item['batchStock'];
+                      final batchQuantity = item['quantity'];
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                        child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(productName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                            Text('${productQuantifier}: ₱${priceAfterDiscount.toStringAsFixed(2)}',
-                                style: const TextStyle(color: Colors.grey)),
-                            Row(
-                              children: [
-                                const Text("Qty: "),
-                                IconButton(
-                                  icon: const Icon(Icons.remove),
-                                  onPressed: batchQuantity > 1
-                                      ? () {
-                                          setState(() {
-                                            item['quantity']--;
-                                            updateTotal();
-                                          });
-                                        }
-                                      : null,
-                                ),
-                                Text('$batchQuantity'),
-                                IconButton(
-                                  icon: const Icon(Icons.add),
-                                  onPressed: batchQuantity < batchStock
-                                      ? () {
-                                          setState(() {
-                                            item['quantity']++;
-                                            updateTotal();
-                                          });
-                                        }
-                                      : null,
-                                ),
-                              ],
+                            Checkbox(
+                              value: selectedBatchIds.contains(batchId),
+                              onChanged: (value) {
+                                setState(() {
+                                  if (value == true) {
+                                    if (selectedSellerId == null || selectedSellerId == sellerId) {
+                                      selectedBatchIds.add(batchId);
+                                      selectedSellerId = sellerId; 
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                        content: Text('You can only order from one store at a time.'),
+                                      ));
+                                    }
+                                  } else {
+                                    selectedBatchIds.remove(batchId);
+
+                                    // Reset selectedSellerId only if no items remain selected
+                                    final storeItems = groupedBasketItems[sellerId];
+                                    final storeBatchesStillSelected = storeItems!.any(
+                                      (item) => selectedBatchIds.contains(item['batchId']),
+                                    );
+
+                                    if (!storeBatchesStillSelected) {
+                                      selectedSellerId = null;
+                                    }
+                                  }
+                                  updateTotal();
+                                });
+                              },
                             ),
+                            Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                image: DecorationImage(
+                                  image: CachedNetworkImageProvider(productMainImageUrl),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(productName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                                  Text('${productQuantifier}: ₱${priceAfterDiscount.toStringAsFixed(2)}',
+                                      style: const TextStyle(color: Colors.grey)),
+                                  Row(
+                                    children: [
+                                      const Text("Qty: "),
+                                      IconButton(
+                                        icon: const Icon(Icons.remove),
+                                        onPressed: batchQuantity > 1
+                                            ? () {
+                                                setState(() {
+                                                  item['quantity']--;
+                                                  updateTotal();
+                                                });
+                                              }
+                                            : null,
+                                      ),
+                                      Text('$batchQuantity'),
+                                      IconButton(
+                                        icon: const Icon(Icons.add),
+                                        onPressed: batchQuantity < batchStock
+                                            ? () {
+                                                setState(() {
+                                                  item['quantity']++;
+                                                  updateTotal();
+                                                });
+                                              }
+                                            : null,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Text('₱${(priceAfterDiscount * batchQuantity).toStringAsFixed(2)}',
+                                style: const TextStyle(fontWeight: FontWeight.bold)),
                           ],
                         ),
-                      ),
-                      Text('₱${(priceAfterDiscount * batchQuantity).toStringAsFixed(2)}',
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                    ],
-                  ),
+                      );
+                    }).toList(),
+                  ],
                 );
               }).toList(),
-            ],
-          );
-        }).toList(),
+            ),
+          if (isLoading)
+            Center(
+              child: CircularProgressIndicator(),
+            ),
+        ],
       ),
       bottomNavigationBar: BottomAppBar(
         child: Row(
