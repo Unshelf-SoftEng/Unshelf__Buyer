@@ -27,10 +27,11 @@ class StoreViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user!.uid).get();
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
 
       DocumentSnapshot storeDoc = await FirebaseFirestore.instance.collection('stores').doc(storeId).get();
-
+      debugPrint("bro what?" + userDoc.data().toString());
+      debugPrint("bro STORE?" + storeDoc.data().toString());
       if (!userDoc.exists || !storeDoc.exists) {
         errorMessage = "User profile or store not found";
         storeDetails = null;
@@ -102,16 +103,16 @@ class StoreViewModel extends ChangeNotifier {
     }
   }
 
-  String formatStoreSchedule(Map<String, Map<String, String>> schedule) {
-    const List<String> daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  // String formatStoreSchedule(Map<String, Map<String, String>> schedule) {
+  //   const List<String> daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-    return daysOfWeek.map((day) {
-      Map<String, String> times = schedule[day] ?? {'open': 'Closed', 'close': 'Closed'};
-      String open = times['open'] ?? 'Closed';
-      String close = times['close'] ?? 'Closed';
-      return open == 'Closed' && close == 'Closed' ? '$day: Closed' : '$day: $open - $close';
-    }).join('\n');
-  }
+  //   return daysOfWeek.map((day) {
+  //     Map<String, String> times = schedule[day] ?? {'open': 'Closed', 'close': 'Closed'};
+  //     String open = times['open'] ?? 'Closed';
+  //     String close = times['close'] ?? 'Closed';
+  //     return open == 'Closed' && close == 'Closed' ? '$day: Closed' : '$day: $open - $close';
+  //   }).join('\n');
+  // }
 
   void clear() {
     storeDetails = null;

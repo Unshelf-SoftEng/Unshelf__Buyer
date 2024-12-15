@@ -8,7 +8,7 @@ class StoreModel {
   final String storeName;
   final double storeLongitude;
   final double storeLatitude;
-  final Map<String, Map<String, String>>? storeSchedule;
+  // final Map<String, Map<String, String>>? storeSchedule;
   final String? storeImageUrl;
   double? storeRating;
   int? storeFollowers;
@@ -19,7 +19,7 @@ class StoreModel {
     required this.name,
     required this.phoneNumber,
     required this.storeName,
-    this.storeSchedule,
+    // this.storeSchedule,
     required this.storeLongitude,
     required this.storeLatitude,
     this.storeImageUrl,
@@ -38,14 +38,14 @@ class StoreModel {
       name: userData['name'] ?? '',
       phoneNumber: userData['phone_number'] ?? '',
       storeName: storeData['store_name'] ?? '',
-      storeSchedule: (storeData['store_schedule'] as Map<String, dynamic>?)?.map(
-        (key, value) => MapEntry(
-          key,
-          (value as Map<String, dynamic>).map(
-            (k, v) => MapEntry(k, v as String),
-          ),
-        ),
-      ),
+      // storeSchedule: (storeData['store_schedule'] as Map<String, dynamic>?)?.map(
+      //   (key, value) => MapEntry(
+      //     key,
+      //     (value as Map<String, dynamic>).map(
+      //       (k, v) => MapEntry(k, v as String),
+      //     ),
+      //   ),
+      // ),
       storeLongitude: (storeData['longitude'] as num?)!.toDouble(),
       storeLatitude: (storeData['latitude'] as num?)!.toDouble(),
       storeImageUrl: storeData['store_image_url'],

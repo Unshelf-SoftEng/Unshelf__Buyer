@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,7 +7,6 @@ import 'package:unshelf_buyer/views/chat_screen.dart';
 import 'package:unshelf_buyer/views/order_placed_view.dart';
 import 'package:unshelf_buyer/viewmodels/order_viewmodel.dart';
 import 'package:unshelf_buyer/widgets/datetime_picker.dart';
-import 'package:unshelf_buyer/widgets/my_switch.dart';
 
 class CheckoutView extends StatefulWidget {
   final List<Map<String, dynamic>> basketItems;
