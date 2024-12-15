@@ -128,10 +128,10 @@ class _ProductPageState extends State<ProductPage> {
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      backgroundColor: const Color(0xFF6E9E57),
+                      backgroundColor: Colors.white.withOpacity(0.6),
                       mini: true,
-                      shape: const CircleBorder(side: BorderSide(color: Colors.white, width: 2.0)),
-                      child: const Icon(Icons.arrow_back, color: Colors.white),
+                      shape: const CircleBorder(),
+                      child: const Icon(Icons.arrow_back, color: Colors.black),
                     ),
                   ),
                   Positioned(
@@ -147,10 +147,10 @@ class _ProductPageState extends State<ProductPage> {
                           ),
                         );
                       },
-                      backgroundColor: const Color(0xFF6E9E57),
+                      backgroundColor: Colors.white.withOpacity(0.6),
                       mini: true,
-                      shape: const CircleBorder(side: BorderSide(color: Colors.white, width: 2.0)),
-                      child: const Icon(Icons.shopping_cart, color: Colors.white),
+                      shape: const CircleBorder(),
+                      child: const Icon(Icons.shopping_basket, color: Colors.black),
                     ),
                   ),
                 ],
@@ -235,10 +235,10 @@ class _ProductPageState extends State<ProductPage> {
                         ),
                       ),
                       const SizedBox(height: 16.0),
-                      // Text(
-                      //   'Expiration: ${DateFormat('MMMM d, yyyy').format((productData['expiryDate'] as Timestamp).toDate())}',
-                      //   style: const TextStyle(fontSize: 16, color: Colors.green),
-                      // ),
+                      Text(
+                        'Expiration: ${DateFormat('MMMM d, yyyy').format((batchData?['expiryDate'] as Timestamp).toDate())}',
+                        style: const TextStyle(fontSize: 16, color: Colors.green),
+                      ),
                       const SizedBox(height: 8.0),
                       const Text(
                         'Description',

@@ -43,7 +43,7 @@ class _CategoryIconsRowState extends State<CategoryIconsRow> {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 decoration: BoxDecoration(
-                  color: _pressedIndex == index ? const Color(0xFF386641) : const Color(0xEEEEEEEE),
+                  color: _pressedIndex == index ? const Color(0xFF386641) : const Color.fromARGB(255, 229, 240, 220),
                   borderRadius: BorderRadius.circular(20.0),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),

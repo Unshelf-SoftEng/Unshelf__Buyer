@@ -69,10 +69,10 @@ class _BundleViewState extends State<BundleView> {
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      backgroundColor: const Color(0xFF6E9E57),
-                      child: const Icon(Icons.arrow_back, color: Colors.white),
+                      backgroundColor: Colors.white.withOpacity(0.6),
                       mini: true,
-                      shape: const CircleBorder(side: BorderSide(color: Colors.white, width: 2.0)),
+                      shape: const CircleBorder(),
+                      child: const Icon(Icons.arrow_back, color: Colors.black),
                     ),
                   ),
                   Positioned(
@@ -85,10 +85,10 @@ class _BundleViewState extends State<BundleView> {
                           MaterialPageRoute(builder: (context) => BasketView()),
                         );
                       },
-                      backgroundColor: const Color(0xFF6E9E57),
-                      child: const Icon(Icons.shopping_cart, color: Colors.white),
+                      backgroundColor: Colors.white.withOpacity(0.6),
                       mini: true,
-                      shape: const CircleBorder(side: BorderSide(color: Colors.white, width: 2.0)),
+                      shape: const CircleBorder(),
+                      child: const Icon(Icons.shopping_basket, color: Colors.black),
                     ),
                   ),
                 ],
@@ -114,7 +114,7 @@ class _BundleViewState extends State<BundleView> {
                             style: const TextStyle(fontSize: 20, color: Colors.green, fontWeight: FontWeight.bold),
                           ),
                           const Text(
-                            'Distance: 6 km', // Modify or calculate dynamically if needed
+                            'Distance: 6 km', // TODO : Calculate Dynamically + Ask for location access on splash
                             style: TextStyle(fontSize: 16, color: Colors.grey),
                           ),
                         ],

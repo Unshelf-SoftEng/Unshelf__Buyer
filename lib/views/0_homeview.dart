@@ -12,7 +12,7 @@ import 'package:unshelf_buyer/views/map_view.dart';
 import 'package:unshelf_buyer/views/product_view.dart';
 import 'package:unshelf_buyer/views/profile_view.dart';
 
-class HomeView extends StatefulWidget {
+class 0HomeView extends StatefulWidget {
   @override
   _HomeViewState createState() => _HomeViewState();
 }
@@ -51,26 +51,25 @@ class _HomeViewState extends State<HomeView> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF6E9E57),
         elevation: 0,
-        toolbarHeight: 80,
+        toolbarHeight: 60,
         title: Container(
-          height: 50,
+          height: 40,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 5, offset: const Offset(0, 0))],
           ),
           child: Row(
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Icon(Icons.search, color: Colors.grey[600]),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                child: Icon(Icons.search, color: Color(0xFFA3C38C)),
               ),
               Expanded(
                 child: TextField(
                   controller: _searchController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: "Search",
-                    hintStyle: TextStyle(color: Colors.grey[600]),
+                    hintStyle: TextStyle(color: Color(0xFFA3C38C)),
                     border: InputBorder.none,
                   ),
                   onSubmitted: (query) => _performSearch(query),
@@ -79,6 +78,34 @@ class _HomeViewState extends State<HomeView> {
             ],
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const CircleAvatar(
+              backgroundColor: Colors.white,
+              child: Icon(Icons.shopping_basket, color: Color(0xFF6E9E57)),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BasketView(),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const CircleAvatar(
+              backgroundColor: Colors.white,
+              child: Icon(Icons.message, color: Color(0xFF6E9E57)),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ChatScreen()),
+              );
+            },
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(4.0),
           child: Container(
@@ -88,38 +115,6 @@ class _HomeViewState extends State<HomeView> {
         ),
       ),
       body: _isSearching ? _buildSearchResults() : _buildHomeContent(),
-
-      // Floating Action Buttons
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          FloatingActionButton(
-            heroTag: 'basket',
-            backgroundColor: Colors.white,
-            child: Icon(Icons.shopping_basket_outlined, color: Colors.grey[600]),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => BasketView()),
-              );
-            },
-          ),
-          const SizedBox(height: 10),
-          FloatingActionButton(
-            heroTag: 'message',
-            backgroundColor: Colors.white,
-            child: Icon(Icons.message_outlined, color: Colors.grey[600]),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ChatScreen()),
-              );
-            },
-          ),
-        ],
-      ),
-
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         onTap: (index) => _onItemTapped(context, index),
