@@ -186,7 +186,7 @@ class _ProductPageState extends State<ProductPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            '\u{20B1}${batchData?['price']?.toStringAsFixed(2) ?? productData['price']}/${productData['quantifier']}',
+                            '\u{20B1}${batchData?['price']?.toStringAsFixed(2) ?? productData['price']}/${productData['quantifier'] ?? 'unit'}',
                             style: const TextStyle(fontSize: 20, color: Color(0xFF0AB68B), fontWeight: FontWeight.bold),
                           ),
                           Text(
@@ -197,6 +197,9 @@ class _ProductPageState extends State<ProductPage> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 5.0),
+                      // Divider
+                      Divider(color: Colors.grey[200]),
                       const SizedBox(height: 5.0),
                       GestureDetector(
                         onTap: () {
@@ -210,7 +213,7 @@ class _ProductPageState extends State<ProductPage> {
                           }
                         },
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Row(
                               children: [
@@ -230,14 +233,15 @@ class _ProductPageState extends State<ProductPage> {
                             Container(
                               padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 12.0),
                               decoration: BoxDecoration(
-                                color: const Color.fromARGB(255, 211, 255, 244),
+                                color: const Color.fromARGB(255, 255, 255, 138),
                                 borderRadius: BorderRadius.circular(12.0),
                               ),
                               child: const Text(
                                 'Visit >',
                                 style: TextStyle(
                                   fontSize: 12.0,
-                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color.fromARGB(255, 250, 134, 0),
                                 ),
                               ),
                             ),

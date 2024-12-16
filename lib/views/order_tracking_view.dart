@@ -247,7 +247,7 @@ class OrderTrackingView extends StatelessWidget {
                                                 '+ Review',
                                                 style: TextStyle(
                                                   fontSize: 12.0,
-                                                  color: Colors.black,
+                                                  color: Color.fromARGB(255, 250, 134, 0),
                                                 ),
                                               ),
                                             ),
@@ -255,24 +255,6 @@ class OrderTrackingView extends StatelessWidget {
                                       const SizedBox(
                                         width: 5,
                                       ),
-                                      // ElevatedButton(
-                                      //   onPressed: () {
-                                      //     Navigator.push(
-                                      //       context,
-                                      //       MaterialPageRoute(
-                                      //         builder: (context) => ReviewPage(
-                                      //           orderId: orderId,
-                                      //           storeId: orderDetails['sellerId'], // Assuming storeId is available
-                                      //         ),
-                                      //       ),
-                                      //     );
-                                      //   },
-                                      //   style: ElevatedButton.styleFrom(
-                                      //     fixedSize: Size(100, 60),
-                                      //     backgroundColor: const Color.fromARGB(255, 233, 255, 234),
-                                      //   ),
-                                      //   child: const Text('+ Review'),
-                                      // ),
                                       Container(
                                         padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 12.0),
                                         decoration: BoxDecoration(

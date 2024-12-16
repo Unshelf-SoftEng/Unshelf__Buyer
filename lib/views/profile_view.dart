@@ -87,7 +87,7 @@ class ProfileView extends StatelessWidget {
                                 child: Row(
                                   children: [
                                     const Icon(
-                                      Icons.emoji_events,
+                                      Icons.star,
                                       size: 20,
                                       color: Colors.yellow,
                                     ),

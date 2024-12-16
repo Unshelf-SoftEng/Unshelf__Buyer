@@ -22,7 +22,7 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
   // List of pages for navigation
   final List<Widget> _pages = [
     HomeView(),
-    StoresView(),
+    const StoresView(),
     MapPage(),
     ProfileView(),
   ];
@@ -59,6 +59,8 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
+      backgroundColor: Colors.white,
+      elevation: 10,
       currentIndex: _selectedIndex,
       onTap: _onItemTapped,
       items: List.generate(_icons.length, (index) {
