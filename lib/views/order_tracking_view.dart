@@ -125,7 +125,7 @@ class OrderTrackingView extends StatelessWidget {
                   final pickupCode = orderDetails['pickupCode'];
                   final createdAt = orderDetails['createdAt'];
 
-                  debugPrint("? $isReviewed");
+                  ("? $isReviewed");
                   // Determine color based on order status
                   Color statusColor;
                   switch (status) {

@@ -60,7 +60,12 @@ class ReviewPage extends StatelessWidget {
                 };
 
                 await FirebaseFirestore.instance.collection('orders').doc(orderDocId).update({'isReviewed': true});
-                await FirebaseFirestore.instance.collection('stores').doc(storeId).collection('reviews').add(reviewData);
+                await FirebaseFirestore.instance
+                    .collection('stores')
+                    .doc(storeId)
+                    .collection('reviews')
+                    .doc(orderDocId)
+                    .set(reviewData);
 
                 Navigator.pop(context);
               },

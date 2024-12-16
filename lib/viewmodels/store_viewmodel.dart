@@ -30,8 +30,8 @@ class StoreViewModel extends ChangeNotifier {
       DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
 
       DocumentSnapshot storeDoc = await FirebaseFirestore.instance.collection('stores').doc(storeId).get();
-      debugPrint("bro what?" + userDoc.data().toString());
-      debugPrint("bro STORE?" + storeDoc.data().toString());
+      ("bro what?" + userDoc.data().toString());
+      ("bro STORE?" + storeDoc.data().toString());
       if (!userDoc.exists || !storeDoc.exists) {
         errorMessage = "User profile or store not found";
         storeDetails = null;

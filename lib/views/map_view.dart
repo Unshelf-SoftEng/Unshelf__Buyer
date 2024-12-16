@@ -9,6 +9,7 @@ import 'package:unshelf_buyer/views/profile_view.dart';
 import 'package:unshelf_buyer/views/store_view.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:unshelf_buyer/widgets/custom_navigation_bar.dart';
 
 class MapPage extends StatefulWidget {
   @override
@@ -128,115 +129,56 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
       );
     }
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF0AB68B),
-        elevation: 0,
-        toolbarHeight: 65,
-        title: const Text(
-          "Near Me",
-          style: TextStyle(color: Colors.white, fontSize: 25.0),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF0AB68B),
+          elevation: 0,
+          toolbarHeight: 65,
+          title: const Text(
+            "Near Me",
+            style: TextStyle(color: Colors.white, fontSize: 25.0),
+          ),
+          bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(4.0),
+              child: Container(
+                color: const Color(0xFF92DE8B),
+                height: 6.0,
+              )),
         ),
-        bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(4.0),
-            child: Container(
-              color: const Color(0xFF92DE8B),
-              height: 6.0,
-            )),
-      ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
-          : FutureBuilder<Set<Marker>>(
-              future: _getMarkersWithinRadius(_currentPosition!, 500),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return const Center(child: Text('Error loading map data.'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No sellers found within the radius.'));
-                } else {
-                  return FlutterMap(
-                    options: MapOptions(
-                      initialCenter: _currentPosition!, // Center the map over user's current position
-                      initialZoom: 20,
-                    ),
-                    children: [
-                      TileLayer(
-                        // Display map tiles from any source
-                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', // OSMF's Tile Server
-                        userAgentPackageName: 'com.example.app',
-                        // And many more recommended properties!
+        body: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(),
+              )
+            : FutureBuilder<Set<Marker>>(
+                future: _getMarkersWithinRadius(_currentPosition!, 500),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return const Center(child: Text('Error loading map data.'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('No sellers found within the radius.'));
+                  } else {
+                    return FlutterMap(
+                      options: MapOptions(
+                        initialCenter: _currentPosition!, // Center the map over user's current position
+                        initialZoom: 20,
                       ),
-                      CurrentLocationLayer(),
-                      MarkerLayer(
-                        markers: snapshot.data!.toList(),
-                      )
-                    ],
-                  );
-                }
-              },
-            ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 1,
-        onTap: (index) => _onItemTapped(context, index),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.location_on),
-            label: 'Near Me',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _onItemTapped(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
-              return HomeView();
-            },
-            transitionDuration: Duration.zero,
-            reverseTransitionDuration: Duration.zero,
-          ),
-        );
-        break;
-      case 1:
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
-              return MapPage();
-            },
-            transitionDuration: Duration.zero,
-            reverseTransitionDuration: Duration.zero,
-          ),
-        );
-        break;
-      case 2:
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
-              return ProfileView();
-            },
-            transitionDuration: Duration.zero,
-            reverseTransitionDuration: Duration.zero,
-          ),
-        );
-        break;
-    }
+                      children: [
+                        TileLayer(
+                          // Display map tiles from any source
+                          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', // OSMF's Tile Server
+                          userAgentPackageName: 'com.example.app',
+                          // And many more recommended properties!
+                        ),
+                        CurrentLocationLayer(),
+                        MarkerLayer(
+                          markers: snapshot.data!.toList(),
+                        )
+                      ],
+                    );
+                  }
+                },
+              ),
+        bottomNavigationBar: const CustomBottomNavigationBar(currentIndex: 2));
   }
 }

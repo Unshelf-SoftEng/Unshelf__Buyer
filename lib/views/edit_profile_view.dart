@@ -34,13 +34,13 @@ class _EditProfileViewState extends State<EditProfileView> {
     if (_user != null) {
       DocumentSnapshot userDoc = await _firestore.collection('users').doc(_user!.uid).get();
       if (userDoc.exists) {
-        debugPrint("Exists!");
+        ("Exists!");
         Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
         _usernameController.text = data['name'];
         _emailController.text = data['email'];
         _profileImageUrl = data['profileImageUrl'];
       } else {
-        debugPrint("Does not exist!");
+        ("Does not exist!");
       }
     }
     setState(() {

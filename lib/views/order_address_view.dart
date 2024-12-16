@@ -58,7 +58,7 @@ class EditOrderAddressView extends StatelessWidget {
         onTap: (LatLng location) {
           latitude = location.latitude;
           longitude = location.longitude;
-          debugPrint("LOCATION:  $latitude $longitude");
+          ("LOCATION:  $latitude $longitude");
           // update location!
           // viewModel.updateLocation(location);
         },
@@ -73,7 +73,7 @@ class EditOrderAddressView extends StatelessWidget {
             onDragEnd: (LatLng newPosition) {
               latitude = newPosition.latitude;
               longitude = newPosition.longitude;
-              debugPrint("POSITION:  $latitude $longitude");
+              ("POSITION:  $latitude $longitude");
               // viewModel.updateLocation(newPosition);
               // insert update location logic here
             },

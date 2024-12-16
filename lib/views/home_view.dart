@@ -8,11 +8,13 @@ import 'package:unshelf_buyer/views/basket_view.dart';
 import 'package:unshelf_buyer/views/product_bundle_view.dart';
 import 'package:unshelf_buyer/views/profile_favorites_view.dart';
 import 'package:unshelf_buyer/views/search_view.dart';
+import 'package:unshelf_buyer/views/stores_view.dart';
 import 'package:unshelf_buyer/widgets/category_row_widget.dart';
 import 'package:unshelf_buyer/views/chat_screen.dart';
 import 'package:unshelf_buyer/views/map_view.dart';
 import 'package:unshelf_buyer/views/product_view.dart';
 import 'package:unshelf_buyer/views/profile_view.dart';
+import 'package:unshelf_buyer/widgets/custom_navigation_bar.dart';
 
 class HomeView extends StatefulWidget {
   @override
@@ -166,23 +168,8 @@ class _HomeViewState extends State<HomeView> {
         ],
       ),
 
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        onTap: (index) => _onItemTapped(context, index),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.location_on),
-            label: 'Near Me',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
+      bottomNavigationBar: const CustomBottomNavigationBar(
+        currentIndex: 0, // Set the active tab index
       ),
     );
   }
@@ -298,47 +285,6 @@ class _HomeViewState extends State<HomeView> {
         ],
       )),
     );
-  }
-
-  void _onItemTapped(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
-              return HomeView();
-            },
-            transitionDuration: Duration.zero,
-            reverseTransitionDuration: Duration.zero,
-          ),
-        );
-        break;
-      case 1:
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
-              return MapPage();
-            },
-            transitionDuration: Duration.zero,
-            reverseTransitionDuration: Duration.zero,
-          ),
-        );
-        break;
-      case 2:
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
-              return ProfileView();
-            },
-            transitionDuration: Duration.zero,
-            reverseTransitionDuration: Duration.zero,
-          ),
-        );
-        break;
-    }
   }
 
   Widget _buildCarouselBanner() {

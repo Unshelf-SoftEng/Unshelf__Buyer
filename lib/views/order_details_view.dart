@@ -24,7 +24,7 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
 
   Future<void> _cancelOrder() async {
     try {
-      debugPrint('? ${widget.orderDetails['orderId']}');
+      ('? ${widget.orderDetails['orderId']}');
       await _firestore.collection('orders').doc(widget.orderDetails['docId']).update({'status': 'Cancelled'});
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

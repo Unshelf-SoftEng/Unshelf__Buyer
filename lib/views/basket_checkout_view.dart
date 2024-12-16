@@ -75,7 +75,7 @@ class _CheckoutViewState extends State<CheckoutView> {
 
   void calculateTotalAmount() {
     totalRegular = (widget.basketItems.fold(0, (sum, item) => sum + item['batchPrice'] * item['quantity']));
-    debugPrint("Huh? ${totalRegular}");
+    ("Huh? ${totalRegular}");
     totalAmount = totalRegular;
   }
 
@@ -96,7 +96,7 @@ class _CheckoutViewState extends State<CheckoutView> {
     DateTime start = now.subtract(Duration(hours: now.hour, minutes: now.minute, seconds: now.second));
     DateTime end = start.add(const Duration(days: 1));
 
-    debugPrint("Start $start End $end");
+    ("Start $start End $end");
 
     // Reference to the Firebase collection where orders are stored
     CollectionReference ordersRef = FirebaseFirestore.instance.collection('orders');
@@ -109,7 +109,7 @@ class _CheckoutViewState extends State<CheckoutView> {
 
     // Get the number of orders already made today
     int orderCount = querySnapshot.size;
-    debugPrint("what? $orderCount");
+    ("what? $orderCount");
 
     // Generate the next order number by incrementing the order count
     String nextOrderNumber = (orderCount + 1).toString().padLeft(3, '0');

@@ -120,7 +120,7 @@ class OrderViewModel extends ChangeNotifier {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
       );
-      debugPrint("Payment Intent Response: ${response.body}");
+      ("Payment Intent Response: ${response.body}");
       return json.decode(response.body);
     } catch (error) {
       print('Error in createPaymentIntent: $error');
@@ -131,28 +131,28 @@ class OrderViewModel extends ChangeNotifier {
   // Display the Stripe payment sheet
   Future<void> displayPaymentSheet() async {
     try {
-      debugPrint("inside displayPaymentSheet - start");
+      ("inside displayPaymentSheet - start");
 
       await Stripe.instance.presentPaymentSheet().then((value) {
-        debugPrint("inside displayPaymentSheet - present");
+        ("inside displayPaymentSheet - present");
       }).catchError((error) {
-        debugPrint("Error presenting payment sheet: $error");
+        ("Error presenting payment sheet: $error");
       });
 
       await Stripe.instance.confirmPaymentSheetPayment().then((value) {
-        debugPrint("inside displayPaymentSheet - confirm");
+        ("inside displayPaymentSheet - confirm");
       }).catchError((error) {
-        debugPrint("Error confirming payment: $error");
+        ("Error confirming payment: $error");
       });
 
       // Update order status to 'paid' once the payment is successful
       await updateOrderStatusToPaid();
 
-      debugPrint("inside displayPaymentSheet - updated");
+      ("inside displayPaymentSheet - updated");
       paymentIntentData = null;
       notifyListeners();
     } catch (error) {
-      debugPrint('Error in displayPaymentSheet: $error');
+      ('Error in displayPaymentSheet: $error');
     }
   }
 

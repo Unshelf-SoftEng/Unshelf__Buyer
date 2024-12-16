@@ -162,6 +162,20 @@ class _StoreViewState extends State<StoreView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        toolbarHeight: 50,
+        title: const Text(
+          'Store View',
+          style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context); // Manually go back to the previous page
+          },
+        ),
+        backgroundColor: const Color(0xFF0AB68B),
+      ),
       body: Consumer<StoreViewModel>(
         builder: (context, storeViewModel, child) {
           if (storeViewModel.isLoading) {
@@ -186,7 +200,7 @@ class _StoreViewState extends State<StoreView> {
               children: [
                 // Store Header
                 Container(
-                  padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 30.0, bottom: 10.0),
+                  padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 10, bottom: 20.0),
                   color: const Color(0xFF0AB68B),
                   child: Row(
                     children: [
@@ -206,47 +220,36 @@ class _StoreViewState extends State<StoreView> {
                             'Cebu City, Cebu',
                             style: TextStyle(fontSize: 12, color: Colors.white),
                           ),
-                          // Row(
-                          //   children: [
-                          //     const Icon(Icons.star, color: Colors.amber, size: 16),
-                          //     Text(
-                          //       '${storeDetails.storeRating?.toStringAsFixed(1)} Rating',
-                          //       style: const TextStyle(fontSize: 12, color: Colors.white),
-                          //     ),
-                          //     const SizedBox(width: 10),
-                          //     Text(
-                          //       '${storeDetails.storeFollowers ?? 0} Followers',
-                          //       style: const TextStyle(fontSize: 12, color: Colors.white),
-                          //     ),
-                          //   ],
-                          // ),
+                          Row(
+                            children: [
+                              const Icon(Icons.star, color: Colors.amber, size: 16),
+                              Text(
+                                '${storeDetails.storeRating?.toStringAsFixed(1)} Rating',
+                                style: const TextStyle(fontSize: 12, color: Colors.white),
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                '${storeDetails.storeFollowers ?? 0} Followers',
+                                style: const TextStyle(fontSize: 12, color: Colors.white),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                       const Spacer(),
-                      Column(
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          ElevatedButton(
+                          IconButton(
                             onPressed: _toggleFollow,
-                            style: isFollowing
-                                ? ElevatedButton.styleFrom(
-                                    backgroundColor: const Color.fromARGB(255, 105, 120, 106),
-                                    side: const BorderSide(color: Color.fromARGB(255, 255, 255, 255), width: 1.0),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20.0),
-                                    ),
-                                  )
-                                : ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF66BB6A),
-                                    side: const BorderSide(color: Color.fromARGB(255, 255, 255, 255), width: 1.0),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20.0),
-                                    ),
-                                  ),
-                            child: isFollowing
-                                ? const Text('Unfollow', style: TextStyle(color: Colors.white))
-                                : const Text('Follow', style: TextStyle(color: Colors.white)),
+                            icon: Icon(
+                              isFollowing ? Icons.favorite : Icons.favorite_border,
+                              color: isFollowing ? Colors.yellow : Colors.white,
+                              size: 28,
+                            ),
+                            tooltip: isFollowing ? 'Unfollow' : 'Follow',
                           ),
-                          ElevatedButton(
+                          IconButton(
                             onPressed: () {
                               Navigator.push(
                                 context,
@@ -258,18 +261,23 @@ class _StoreViewState extends State<StoreView> {
                                 ),
                               );
                             },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFFD54F),
-                              side: const BorderSide(color: Color.fromARGB(255, 255, 255, 255), width: 1.0),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20.0),
-                              ),
+                            icon: const Icon(
+                              Icons.chat,
+                              color: Colors.yellow,
+                              size: 28,
                             ),
-                            child: const Text('Chat', style: TextStyle(color: Colors.black)),
+                            tooltip: 'Chat',
                           ),
                         ],
                       ),
                     ],
+                  ),
+                ),
+                PreferredSize(
+                  preferredSize: const Size.fromHeight(4.0),
+                  child: Container(
+                    color: const Color(0xFF92DE8B),
+                    height: 6.0,
                   ),
                 ),
                 // View in Maps
@@ -277,24 +285,18 @@ class _StoreViewState extends State<StoreView> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: ElevatedButton(
                     onPressed: () {
-                      if (storeDetails.storeLatitude != null && storeDetails.storeLongitude != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => StoreAddressView(
-                              latitude: storeDetails.storeLatitude!,
-                              longitude: storeDetails.storeLongitude!,
-                            ),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => StoreAddressView(
+                            latitude: storeDetails.storeLatitude,
+                            longitude: storeDetails.storeLongitude,
                           ),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Location data is not available')),
-                        );
-                      }
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF66BB6A),
+                      backgroundColor: const Color(0xFF0AB68B),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20.0),
                       ),
