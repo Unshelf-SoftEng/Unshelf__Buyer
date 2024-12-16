@@ -37,6 +37,7 @@ class _BundleViewState extends State<BundleView> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: FutureBuilder<DocumentSnapshot>(
@@ -48,92 +49,78 @@ class _BundleViewState extends State<BundleView> {
 
           var bundleData = snapshot.data!.data() as Map<String, dynamic>;
 
-          return Column(
-            children: [
-              Stack(
-                children: [
-                  // Bundle image
-                  CachedNetworkImage(
-                    imageUrl: bundleData['mainImageUrl'],
-                    placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                    errorWidget: (context, url, error) => const Center(child: Icon(Icons.error)),
-                    width: double.infinity,
-                    height: MediaQuery.of(context).size.height * 0.4,
-                    fit: BoxFit.cover,
-                  ),
-
-                  // Floating buttons
-                  Positioned(
-                    top: 40.0,
-                    left: 16.0,
-                    child: FloatingActionButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      backgroundColor: Colors.white.withOpacity(0.6),
-                      mini: true,
-                      shape: const CircleBorder(),
-                      child: const Icon(Icons.arrow_back, color: Colors.black),
+          return CustomScrollView(
+            slivers: [
+              // Bundle Image
+              SliverToBoxAdapter(
+                child: Stack(
+                  children: [
+                    CachedNetworkImage(
+                      imageUrl: bundleData['mainImageUrl'],
+                      placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                      errorWidget: (context, url, error) => const Center(child: Icon(Icons.error)),
+                      width: double.infinity,
+                      height: MediaQuery.of(context).size.height * 0.5,
+                      fit: BoxFit.cover,
                     ),
-                  ),
-                  Positioned(
-                    top: 40.0,
-                    right: 16.0,
-                    child: FloatingActionButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => BasketView()),
-                        );
-                      },
-                      backgroundColor: Colors.white.withOpacity(0.6),
-                      mini: true,
-                      shape: const CircleBorder(),
-                      child: const Icon(Icons.shopping_basket, color: Colors.black),
+                    Positioned(
+                      top: 40.0,
+                      left: 16.0,
+                      child: FloatingActionButton(
+                        onPressed: () => Navigator.pop(context),
+                        backgroundColor: Colors.white.withOpacity(0.6),
+                        mini: true,
+                        shape: const CircleBorder(),
+                        child: const Icon(Icons.arrow_back, color: Colors.black),
+                      ),
                     ),
-                  ),
-                ],
+                    Positioned(
+                      top: 40.0,
+                      right: 16.0,
+                      child: FloatingActionButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => BasketView()),
+                          );
+                        },
+                        backgroundColor: Colors.white.withOpacity(0.6),
+                        mini: true,
+                        shape: const CircleBorder(),
+                        child: const Icon(Icons.shopping_basket, color: Colors.black),
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
               // Bundle Details
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        bundleData['name'],
-                        style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-                      ),
+                      Text(bundleData['name'], style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8.0),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'P ${bundleData['price']}',
-                            style: const TextStyle(fontSize: 20, color: const Color(0xFF0AB68B), fontWeight: FontWeight.bold),
+                            '\u{20B1}${bundleData?['price']?.toStringAsFixed(2)}',
+                            style: const TextStyle(fontSize: 20, color: Color(0xFF0AB68B), fontWeight: FontWeight.bold),
                           ),
-                          const Text(
-                            'Distance: 6 km', // TODO : Calculate Dynamically + Ask for location access on splash
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
-                          ),
+                          Text('Stock: ${bundleData['stock']}', style: TextStyle(fontSize: 20, color: Colors.grey[500])),
                         ],
                       ),
                       const SizedBox(height: 8.0),
-
-                      Text(
-                        'Stock: ${bundleData['stock']}',
-                        style: const TextStyle(fontSize: 16, color: const Color(0xFF0AB68B)),
-                      ),
+                      const Divider(),
                       GestureDetector(
                         onTap: () {
                           if (sellerData != null) {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => StoreView(storeId: bundleData['sellerId']),
-                              ),
+                              MaterialPageRoute(builder: (context) => StoreView(storeId: bundleData['sellerId'])),
                             );
                           }
                         },
@@ -153,160 +140,161 @@ class _BundleViewState extends State<BundleView> {
                         ),
                       ),
                       const SizedBox(height: 16.0),
-                      // Divider
-                      Divider(color: Colors.grey[200]),
-                      const Text(
-                        'Description',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
+                      const Text('Description', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8.0),
-                      Text(
-                        bundleData['description'],
-                        style: const TextStyle(fontSize: 16),
-                      ),
+                      Text(bundleData['description'], style: const TextStyle(fontSize: 16)),
+                      const Divider(),
+
+                      // // Quantity Selector
+                      // Row(
+                      //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      //   children: [
+                      //     const Text('Quantity:', style: TextStyle(fontSize: 18)),
+                      //     Row(
+                      //       children: [
+                      //         IconButton(
+                      //           icon: const Icon(Icons.remove),
+                      //           onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
+                      //         ),
+                      //         Text(_quantity.toString(), style: const TextStyle(fontSize: 18)),
+                      //         IconButton(
+                      //           icon: const Icon(Icons.add),
+                      //           onPressed: () => setState(() => _quantity++),
+                      //         ),
+                      //       ],
+                      //     ),
+                      //   ],
+                      // ),
+                      // const Divider(),
+
+                      // Products in Bundle
+                      const Text('Products in this bundle', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8.0),
-                      // Divider
-                      Divider(color: Colors.grey[200]),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Quantity:', style: TextStyle(fontSize: 18)),
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.remove),
-                                onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
-                              ),
-                              Text(
-                                _quantity.toString(),
-                                style: const TextStyle(fontSize: 18),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.add),
-                                onPressed: () => setState(() => _quantity++),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      // Divider
-                      Divider(color: Colors.grey[200]),
-                      // Products in Bundle (Carousel)
-                      const Text(
-                        'Products in this bundle',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8.0),
-                      FutureBuilder<QuerySnapshot>(
-                        future: FirebaseFirestore.instance
-                            .collection('batches')
-                            .where(FieldPath.documentId, whereIn: bundleData['items'].map((item) => item['batchId']).toList())
-                            .get(),
-                        builder: (context, batchSnapshot) {
-                          if (!batchSnapshot.hasData) {
-                            return const Center(child: CircularProgressIndicator());
-                          }
-
-                          var batches = batchSnapshot.data!.docs;
-
-                          if (batches.isEmpty) {
-                            return const Text('No products found in this bundle.');
-                          }
-
-                          return SizedBox(
-                            height: 200.0,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: batches.length,
-                              itemBuilder: (context, index) {
-                                var batch = batches[index].data() as Map<String, dynamic>;
-
-                                // Fetch product details using the productId from the batch
-                                return FutureBuilder<DocumentSnapshot>(
-                                  future: FirebaseFirestore.instance.collection('products').doc(batch['productId']).get(),
-                                  builder: (context, productSnapshot) {
-                                    if (!productSnapshot.hasData) {
-                                      return const CircularProgressIndicator();
-                                    }
-
-                                    var product = productSnapshot.data!.data() as Map<String, dynamic>;
-
-                                    return GestureDetector(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => ProductPage(productId: batch['productId']),
-                                          ),
-                                        );
-                                      },
-                                      child: Card(
-                                        margin: const EdgeInsets.only(right: 8.0),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            CachedNetworkImage(
-                                              imageUrl: product['mainImageUrl'] ?? '',
-                                              placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                                              errorWidget: (context, url, error) => const Center(child: Icon(Icons.error)),
-                                              width: 120.0,
-                                              height: 120.0,
-                                              fit: BoxFit.cover,
-                                            ),
-                                            const SizedBox(height: 8.0),
-                                            Padding(
-                                              padding: const EdgeInsets.all(3.0),
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    product['name'] ?? 'No Name',
-                                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                  Text(
-                                                    'P ${batch['price'] ?? 0}',
-                                                    style: const TextStyle(fontSize: 14, color: const Color(0xFF0AB68B)),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                          );
-                        },
-                      ),
                     ],
                   ),
                 ),
+              ),
+
+              // Product Carousel
+              FutureBuilder<QuerySnapshot>(
+                future: FirebaseFirestore.instance
+                    .collection('batches')
+                    .where(FieldPath.documentId, whereIn: bundleData['items'].map((item) => item['batchId']).toList())
+                    .get(),
+                builder: (context, batchSnapshot) {
+                  if (!batchSnapshot.hasData) {
+                    return const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator()));
+                  }
+
+                  var batches = batchSnapshot.data!.docs;
+
+                  if (batches.isEmpty) {
+                    return const SliverToBoxAdapter(child: Text('No products found in this bundle.'));
+                  }
+
+                  return SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: 200.0,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: batches.length,
+                        itemBuilder: (context, index) {
+                          var batch = batches[index].data() as Map<String, dynamic>;
+                          return _buildProductCard(batch['productId'], batch['price']);
+                        },
+                      ),
+                    ),
+                  );
+                },
               ),
             ],
           );
         },
       ),
+
+      // Bottom Button
       bottomNavigationBar: BottomAppBar(
-        child: Center(
-          child: ElevatedButton(
-            onPressed: () => _addToCart(context, widget.bundleId, _quantity),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0AB68B),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove),
+                      onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
+                    ),
+                    Text(
+                      _quantity.toString(),
+                      style: const TextStyle(fontSize: 18),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: () => setState(() => _quantity++),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            ElevatedButton(
+              onPressed: () => _addToCart(context, widget.bundleId, _quantity), // Disable button until a batch is loaded
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0AB68B),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
               ),
-            ),
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              child: Text("ADD TO CART", style: TextStyle(fontSize: 16, color: Colors.white)),
-            ),
-          ),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                child: Text("ADD TO CART", style: TextStyle(fontSize: 16, color: Colors.white)),
+              ),
+            )
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildProductCard(String productId, dynamic price) {
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance.collection('products').doc(productId).get(),
+      builder: (context, productSnapshot) {
+        if (!productSnapshot.hasData) return const Center(child: CircularProgressIndicator());
+        var product = productSnapshot.data!.data() as Map<String, dynamic>;
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProductPage(productId: productId),
+              ),
+            );
+          },
+          child: Card(
+            margin: const EdgeInsets.only(right: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CachedNetworkImage(
+                  imageUrl: product['mainImageUrl'] ?? '',
+                  placeholder: (context, url) => const CircularProgressIndicator(),
+                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                  width: 120.0,
+                  height: 120.0,
+                  fit: BoxFit.cover,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(product['name'] ?? 'No Name', style: const TextStyle(fontSize: 14)),
+                ),
+                Text('P $price', style: const TextStyle(fontSize: 12, color: Color(0xFF0AB68B))),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

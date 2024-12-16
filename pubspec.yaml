@@ -57,6 +57,7 @@ dependencies:
   geocoding: ^3.0.0
   flutter_stripe: ^11.2.0
   pay: ^2.0.0
+  loading_indicator: ^3.1.1
 
 dev_dependencies:
   flutter_test:

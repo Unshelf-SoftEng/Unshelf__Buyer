@@ -86,7 +86,11 @@ class ProfileView extends StatelessWidget {
                                 ),
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.emoji_events, size: 20),
+                                    const Icon(
+                                      Icons.emoji_events,
+                                      size: 20,
+                                      color: Colors.yellow,
+                                    ),
                                     const SizedBox(width: 8),
                                     Text(
                                       "POINTS: ${userData['points']}",

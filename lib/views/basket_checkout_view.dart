@@ -264,7 +264,7 @@ class _CheckoutViewState extends State<CheckoutView> {
                 const SizedBox(width: 10),
                 if (selectedPickupDateTime != null)
                   Text(
-                    DateFormat('EEE MM-dd-yyyy | h:mm a').format(selectedPickupDateTime!),
+                    DateFormat('MM/dd/yyyy | h:mm a').format(selectedPickupDateTime!),
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
               ],

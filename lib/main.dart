@@ -62,7 +62,8 @@ class MyApp extends StatelessWidget {
         ),
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0AB68B)),
         useMaterial3: true,
-        textTheme: GoogleFonts.jostTextTheme(Theme.of(context).textTheme).apply(bodyColor: const Color(0xFF028174)),
+        textTheme: GoogleFonts.jostTextTheme(Theme.of(context).textTheme)
+            .apply(displayColor: const Color(0xFF0AB68B), bodyColor: Colors.black),
       ),
       debugShowCheckedModeBanner: false,
       home: FirebaseAuth.instance.currentUser != null ? HomeView() : LoginView(),

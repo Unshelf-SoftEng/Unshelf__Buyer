@@ -1,4 +1,3 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -8,12 +7,9 @@ import 'package:unshelf_buyer/views/basket_view.dart';
 import 'package:unshelf_buyer/views/product_bundle_view.dart';
 import 'package:unshelf_buyer/views/profile_favorites_view.dart';
 import 'package:unshelf_buyer/views/search_view.dart';
-import 'package:unshelf_buyer/views/stores_view.dart';
 import 'package:unshelf_buyer/widgets/category_row_widget.dart';
 import 'package:unshelf_buyer/views/chat_screen.dart';
-import 'package:unshelf_buyer/views/map_view.dart';
 import 'package:unshelf_buyer/views/product_view.dart';
-import 'package:unshelf_buyer/views/profile_view.dart';
 import 'package:unshelf_buyer/widgets/custom_navigation_bar.dart';
 
 class HomeView extends StatefulWidget {
@@ -24,9 +20,6 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
-  final TextEditingController _searchController = TextEditingController();
-  List<DocumentSnapshot> _searchResults = [];
-  bool _isSearching = false;
   Map<String, double> minPrices = {};
 
   Future<List<DocumentSnapshot>> _fetchListedProducts() async {
@@ -58,7 +51,7 @@ class _HomeViewState extends State<HomeView> {
         toolbarHeight: 80,
         title: GestureDetector(
           onTap: () {
-            // Navigate to SearchView when the search bar is tapped
+            // Navigate to SearchView on tap
             Navigator.push(
               context,
               PageRouteBuilder(
@@ -102,26 +95,32 @@ class _HomeViewState extends State<HomeView> {
                   width: 1,
                   color: Colors.grey[300],
                 ),
-                // Favorites icon
-                GestureDetector(
-                  onTap: () {
-                    // Navigate to Favorites Page
-                    Navigator.push(
-                      context,
-                      PageRouteBuilder(
-                        pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
-                          return FavoritesView();
-                        },
-                        transitionDuration: Duration.zero,
-                        reverseTransitionDuration: Duration.zero,
-                      ),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Icon(Icons.favorite_border, color: Colors.grey[600]),
+                // Favorites icon with ripple effect
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      // Navigate to Favorites Page
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
+                            return const FavoritesView();
+                          },
+                          transitionDuration: Duration.zero,
+                          reverseTransitionDuration: Duration.zero,
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(10),
+                    splashColor: Colors.grey.withOpacity(0.3),
+                    splashFactory: InkRipple.splashFactory,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                      child: Icon(Icons.favorite_border, color: Colors.grey[600]),
+                    ),
                   ),
-                ),
+                )
               ],
             ),
           ),

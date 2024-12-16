@@ -113,13 +113,18 @@ class _ProductPageState extends State<ProductPage> {
             children: [
               Stack(
                 children: [
-                  CachedNetworkImage(
-                    imageUrl: productData['mainImageUrl'],
-                    placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                    errorWidget: (context, url, error) => const Center(child: Icon(Icons.error)),
-                    width: double.infinity,
-                    height: MediaQuery.of(context).size.height * 0.4,
-                    fit: BoxFit.cover,
+                  InteractiveViewer(
+                    boundaryMargin: const EdgeInsets.all(20),
+                    minScale: 1.0,
+                    maxScale: 4.0,
+                    child: CachedNetworkImage(
+                      imageUrl: productData['mainImageUrl'],
+                      placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                      errorWidget: (context, url, error) => const Center(child: Icon(Icons.error)),
+                      width: double.infinity,
+                      height: MediaQuery.of(context).size.height * 0.5,
+                      fit: BoxFit.contain,
+                    ),
                   ),
                   Positioned(
                     top: 40.0,
@@ -166,7 +171,7 @@ class _ProductPageState extends State<ProductPage> {
                         children: [
                           Text(
                             productData['name'],
-                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
                           ),
                           IconButton(
                             icon: Icon(
@@ -177,8 +182,97 @@ class _ProductPageState extends State<ProductPage> {
                           ),
                         ],
                       ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '\u{20B1}${batchData?['price']?.toStringAsFixed(2) ?? productData['price']}/${productData['quantifier']}',
+                            style: const TextStyle(fontSize: 20, color: Color(0xFF0AB68B), fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            batchData != null && batchData['expiryDate'] != null
+                                ? 'Expires: ${DateFormat('MM/d/yy').format((batchData['expiryDate'] as Timestamp).toDate())}'
+                                : 'Expires: Loading...',
+                            style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 5.0),
+                      GestureDetector(
+                        onTap: () {
+                          if (sellerData != null) {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => StoreView(storeId: productData['sellerId']),
+                              ),
+                            );
+                          }
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                CircleAvatar(
+                                  backgroundImage:
+                                      sellerData != null ? CachedNetworkImageProvider(sellerData!['store_image_url']) : null,
+                                  radius: 20,
+                                ),
+                                const SizedBox(width: 15.0),
+                                Text(
+                                  sellerData != null ? sellerData!['store_name'] : 'Loading...',
+                                  style: const TextStyle(fontSize: 15),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(width: 20.0),
+                            Container(
+                              padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 12.0),
+                              decoration: BoxDecoration(
+                                color: const Color.fromARGB(255, 211, 255, 244),
+                                borderRadius: BorderRadius.circular(12.0),
+                              ),
+                              child: const Text(
+                                'Visit >',
+                                style: TextStyle(
+                                  fontSize: 12.0,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                            // Text(
+                            //   'Distance: 6 km',
+                            //   style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                            // ),
+                          ],
+                        ),
+                      ),
                       // Divider
                       Divider(color: Colors.grey[200]),
+                      // Space
+                      const SizedBox(height: 10.0),
+                      // Description
+                      const Text(
+                        'Description',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 10.0),
+                      Text(
+                        productData['description'],
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                      // Space
+                      const SizedBox(height: 10.0),
+                      // Divider
+                      Divider(color: Colors.grey[200]),
+                      // Space
+                      const SizedBox(height: 10.0),
+                      // Dropdown HEADER
+                      const Text(
+                        'Choose a Batch',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
                       // Dropdown
                       if (_batches != null && _batches!.isNotEmpty)
                         DropdownButton<DocumentSnapshot>(
@@ -196,88 +290,6 @@ class _ProductPageState extends State<ProductPage> {
                             );
                           }).toList(),
                         ),
-                      // Divider
-                      Divider(color: Colors.grey[200]),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '₱${batchData?['price']?.toStringAsFixed(2) ?? productData['price']} / ${productData['quantifier']}',
-                            style: const TextStyle(fontSize: 20, color: const Color(0xFF0AB68B), fontWeight: FontWeight.bold),
-                          ),
-                          const Text(
-                            'Distance: 6 km',
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8.0),
-                      GestureDetector(
-                        onTap: () {
-                          if (sellerData != null) {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => StoreView(storeId: productData['sellerId']),
-                              ),
-                            );
-                          }
-                        },
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              backgroundImage:
-                                  sellerData != null ? CachedNetworkImageProvider(sellerData!['store_image_url']) : null,
-                              radius: 20,
-                            ),
-                            const SizedBox(width: 8.0),
-                            Text(
-                              sellerData != null ? sellerData!['store_name'] : 'Loading...',
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 5.0),
-                      Text(
-                        'Expiration: ${DateFormat('MMMM d, yyyy').format((batchData!['expiryDate']).toDate())}',
-                        style: const TextStyle(fontSize: 16, color: const Color(0xFF0AB68B)),
-                      ),
-                      // Divider
-                      Divider(color: Colors.grey[200]),
-                      const SizedBox(height: 8.0),
-                      const Text(
-                        'Description',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8.0),
-                      Text(
-                        productData['description'],
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      const SizedBox(height: 8.0),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Quantity:', style: TextStyle(fontSize: 18)),
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.remove),
-                                onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
-                              ),
-                              Text(
-                                _quantity.toString(),
-                                style: const TextStyle(fontSize: 18),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.add),
-                                onPressed: () => setState(() => _quantity++),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                 ),
@@ -287,20 +299,45 @@ class _ProductPageState extends State<ProductPage> {
         },
       ),
       bottomNavigationBar: BottomAppBar(
-        child: Center(
-          child: ElevatedButton(
-            onPressed: () => _addToCart(context, _selectedBatch!.id, _quantity),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0AB68B),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove),
+                      onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
+                    ),
+                    Text(
+                      _quantity.toString(),
+                      style: const TextStyle(fontSize: 18),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: () => setState(() => _quantity++),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            ElevatedButton(
+              onPressed: _selectedBatch != null ? () => _addToCart(context, _selectedBatch!.id, _quantity) : null,
+              // Disable button until a batch is loaded
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0AB68B),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
               ),
-            ),
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              child: Text("ADD TO CART", style: TextStyle(fontSize: 16, color: Colors.white)),
-            ),
-          ),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                child: Text("ADD TO CART", style: TextStyle(fontSize: 16, color: Colors.white)),
+              ),
+            )
+          ],
         ),
       ),
     );
