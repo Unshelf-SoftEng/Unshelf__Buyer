@@ -171,14 +171,18 @@ class _ProductPageState extends State<ProductPage> {
                           IconButton(
                             icon: Icon(
                               isFavorite ? Icons.favorite : Icons.favorite_border,
-                              color: Colors.green,
+                              color: const Color(0xFF0AB68B),
                             ),
                             onPressed: _toggleFavorite,
                           ),
                         ],
                       ),
+                      // Divider
+                      Divider(color: Colors.grey[200]),
+                      // Dropdown
                       if (_batches != null && _batches!.isNotEmpty)
                         DropdownButton<DocumentSnapshot>(
+                          elevation: 5,
                           value: _selectedBatch,
                           isExpanded: true,
                           onChanged: _onBatchSelected,
@@ -192,12 +196,14 @@ class _ProductPageState extends State<ProductPage> {
                             );
                           }).toList(),
                         ),
+                      // Divider
+                      Divider(color: Colors.grey[200]),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             '₱${batchData?['price']?.toStringAsFixed(2) ?? productData['price']} / ${productData['quantifier']}',
-                            style: const TextStyle(fontSize: 20, color: Colors.green, fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontSize: 20, color: const Color(0xFF0AB68B), fontWeight: FontWeight.bold),
                           ),
                           const Text(
                             'Distance: 6 km',
@@ -235,8 +241,10 @@ class _ProductPageState extends State<ProductPage> {
                       const SizedBox(height: 5.0),
                       Text(
                         'Expiration: ${DateFormat('MMMM d, yyyy').format((batchData!['expiryDate']).toDate())}',
-                        style: const TextStyle(fontSize: 16, color: Colors.green),
+                        style: const TextStyle(fontSize: 16, color: const Color(0xFF0AB68B)),
                       ),
+                      // Divider
+                      Divider(color: Colors.grey[200]),
                       const SizedBox(height: 8.0),
                       const Text(
                         'Description',
@@ -283,7 +291,7 @@ class _ProductPageState extends State<ProductPage> {
           child: ElevatedButton(
             onPressed: () => _addToCart(context, _selectedBatch!.id, _quantity),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green[500],
+              backgroundColor: const Color(0xFF0AB68B),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),

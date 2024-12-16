@@ -104,7 +104,7 @@ class _BundleViewState extends State<BundleView> {
                     children: [
                       Text(
                         bundleData['name'],
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8.0),
                       Row(
@@ -112,7 +112,7 @@ class _BundleViewState extends State<BundleView> {
                         children: [
                           Text(
                             'P ${bundleData['price']}',
-                            style: const TextStyle(fontSize: 20, color: Colors.green, fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontSize: 20, color: const Color(0xFF0AB68B), fontWeight: FontWeight.bold),
                           ),
                           const Text(
                             'Distance: 6 km', // TODO : Calculate Dynamically + Ask for location access on splash
@@ -121,6 +121,11 @@ class _BundleViewState extends State<BundleView> {
                         ],
                       ),
                       const SizedBox(height: 8.0),
+
+                      Text(
+                        'Stock: ${bundleData['stock']}',
+                        style: const TextStyle(fontSize: 16, color: const Color(0xFF0AB68B)),
+                      ),
                       GestureDetector(
                         onTap: () {
                           if (sellerData != null) {
@@ -148,11 +153,8 @@ class _BundleViewState extends State<BundleView> {
                         ),
                       ),
                       const SizedBox(height: 16.0),
-                      Text(
-                        'Stock: ${bundleData['stock']}',
-                        style: const TextStyle(fontSize: 16, color: Colors.green),
-                      ),
-                      const SizedBox(height: 8.0),
+                      // Divider
+                      Divider(color: Colors.grey[200]),
                       const Text(
                         'Description',
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -163,6 +165,8 @@ class _BundleViewState extends State<BundleView> {
                         style: const TextStyle(fontSize: 16),
                       ),
                       const SizedBox(height: 8.0),
+                      // Divider
+                      Divider(color: Colors.grey[200]),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -185,8 +189,8 @@ class _BundleViewState extends State<BundleView> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16.0),
-
+                      // Divider
+                      Divider(color: Colors.grey[200]),
                       // Products in Bundle (Carousel)
                       const Text(
                         'Products in this bundle',
@@ -262,7 +266,7 @@ class _BundleViewState extends State<BundleView> {
                                                   ),
                                                   Text(
                                                     'P ${batch['price'] ?? 0}',
-                                                    style: const TextStyle(fontSize: 14, color: Colors.green),
+                                                    style: const TextStyle(fontSize: 14, color: const Color(0xFF0AB68B)),
                                                   ),
                                                 ],
                                               ),
@@ -291,7 +295,7 @@ class _BundleViewState extends State<BundleView> {
           child: ElevatedButton(
             onPressed: () => _addToCart(context, widget.bundleId, _quantity),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green[500],
+              backgroundColor: const Color(0xFF0AB68B),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),

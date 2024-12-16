@@ -1,4 +1,3 @@
-// view_models/settings_view_model.dart
 import 'package:flutter/material.dart';
 import '../models/settings_model.dart';
 

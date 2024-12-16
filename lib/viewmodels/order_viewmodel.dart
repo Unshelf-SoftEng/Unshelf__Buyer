@@ -194,6 +194,7 @@ class OrderViewModel extends ChangeNotifier {
             .toList(),
         'sellerId': sellerId,
         'status': "Pending",
+        'subTotal': usePoints ? totalAmount + points : totalAmount,
         'totalPrice': totalAmount,
         'pickupTime': Timestamp.fromDate(pickupDateTime!),
         'pointsDiscount': usePoints ? points : 0

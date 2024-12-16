@@ -145,7 +145,7 @@ class _StoreViewState extends State<StoreView> {
                 ),
                 Text(
                   '  PHP${batchData['price'].toStringAsFixed(2)}',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFF0AB68B)),
                 ),
                 // Text(
                 //   '  ${batchData['quantity']} in stock',
@@ -187,7 +187,7 @@ class _StoreViewState extends State<StoreView> {
                 // Store Header
                 Container(
                   padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 30.0, bottom: 10.0),
-                  color: const Color(0xFF6E9E57),
+                  color: const Color(0xFF0AB68B),
                   child: Row(
                     children: [
                       CircleAvatar(
@@ -336,7 +336,7 @@ class _StoreViewState extends State<StoreView> {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.green[800],
+                                color: const Color(0xFF0AB68B),
                               ),
                             ),
                             const SizedBox(height: 8.0),

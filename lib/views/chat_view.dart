@@ -37,7 +37,7 @@ class _ChatViewState extends State<ChatView> with AutomaticKeepAliveClientMixin 
     super.build(context);
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF6E9E57),
+        backgroundColor: const Color(0xFF0AB68B),
         elevation: 0,
         toolbarHeight: 65,
         title: Text(
@@ -47,7 +47,7 @@ class _ChatViewState extends State<ChatView> with AutomaticKeepAliveClientMixin 
         bottom: PreferredSize(
             preferredSize: const Size.fromHeight(4.0),
             child: Container(
-              color: const Color.fromARGB(255, 200, 221, 150),
+              color: const Color(0xFF92DE8B),
               height: 6.0,
             )),
       ),
@@ -124,7 +124,7 @@ class _ChatViewState extends State<ChatView> with AutomaticKeepAliveClientMixin 
             icon: const Icon(
               Icons.send,
               size: 30,
-              color: Color(0xFF6E9E57),
+              color: Color(0xFF0AB68B),
             ),
           ),
         ],

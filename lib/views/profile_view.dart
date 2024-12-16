@@ -24,9 +24,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Profile Page',
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-      ),
       home: ProfileView(),
       debugShowCheckedModeBanner: false,
     );
@@ -83,16 +80,16 @@ class ProfileView extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color: Colors.green.shade100,
+                                color: const Color.fromARGB(255, 211, 255, 244),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Row(
                                 children: [
-                                  Icon(Icons.emoji_events, size: 20),
-                                  SizedBox(width: 8),
+                                  const Icon(Icons.emoji_events, size: 20),
+                                  const SizedBox(width: 8),
                                   Text(
                                     "POINTS: ${userData['points']}",
-                                    style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(color: Color(0xFF0AB68B), fontWeight: FontWeight.bold),
                                   ),
                                 ],
                               ),
@@ -198,7 +195,7 @@ class ProfileView extends StatelessWidget {
 
   Widget _buildProfileOption(BuildContext context, IconData icon, String title, num index) {
     return ListTile(
-      leading: Icon(icon, color: Colors.green),
+      leading: Icon(icon, color: const Color(0xFF0AB68B)),
       title: Text(title),
       onTap: () {
         switch (index) {

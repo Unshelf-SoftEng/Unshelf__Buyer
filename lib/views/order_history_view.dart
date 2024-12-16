@@ -53,7 +53,7 @@ class OrderHistoryView extends StatelessWidget {
     final FirebaseAuth _auth = FirebaseAuth.instance;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF6E9E57),
+        backgroundColor: const Color(0xFF0AB68B),
         elevation: 0,
         toolbarHeight: 65,
         title: const Text(

@@ -70,7 +70,7 @@ class OrderTrackingView extends StatelessWidget {
     final FirebaseAuth _auth = FirebaseAuth.instance;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF6E9E57),
+        backgroundColor: const Color(0xFF0AB68B),
         elevation: 0,
         toolbarHeight: 65,
         title: const Text(
@@ -83,7 +83,7 @@ class OrderTrackingView extends StatelessWidget {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(4.0),
           child: Container(
-            color: const Color.fromARGB(255, 200, 221, 150),
+            color: const Color(0xFF92DE8B),
             height: 6.0,
           ),
         ),
@@ -184,14 +184,14 @@ class OrderTrackingView extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 18.0,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.green[800],
+                                  color: const Color(0xFF0AB68B),
                                 ),
                               ),
                               const SizedBox(height: 8.0),
                               Container(
                                 padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 12.0),
                                 decoration: BoxDecoration(
-                                  color: isPaid ? Colors.green : Colors.red,
+                                  color: isPaid ? const Color(0xFF0AB68B) : Colors.red,
                                   borderRadius: BorderRadius.circular(12.0),
                                 ),
                                 child: Text(

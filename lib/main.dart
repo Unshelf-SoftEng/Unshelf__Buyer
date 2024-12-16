@@ -57,13 +57,12 @@ class MyApp extends StatelessWidget {
         bottomAppBarTheme: const BottomAppBarTheme(color: Colors.white, shadowColor: Colors.grey, elevation: 20),
         bottomNavigationBarTheme: const BottomNavigationBarThemeData(
           backgroundColor: Colors.white,
-          selectedItemColor: const Color(0xFF6E9E57),
+          selectedItemColor: Color(0xFF0AB68B),
           unselectedItemColor: Colors.grey,
         ),
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF386641)),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0AB68B)),
         useMaterial3: true,
-        textTheme:
-            GoogleFonts.jostTextTheme(Theme.of(context).textTheme).apply(bodyColor: const Color.fromARGB(255, 56, 102, 65)),
+        textTheme: GoogleFonts.jostTextTheme(Theme.of(context).textTheme).apply(bodyColor: const Color(0xFF028174)),
       ),
       debugShowCheckedModeBanner: false,
       home: FirebaseAuth.instance.currentUser != null ? HomeView() : LoginView(),

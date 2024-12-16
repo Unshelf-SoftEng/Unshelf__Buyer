@@ -22,7 +22,7 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF6E9E57),
+        backgroundColor: const Color(0xFF0AB68B),
         elevation: 0,
         toolbarHeight: 65,
         title: const Text(
@@ -38,7 +38,7 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
               backgroundColor: Colors.white,
               child: Icon(
                 Icons.shopping_basket,
-                color: Color(0xFF6E9E57),
+                color: Color(0xFF0AB68B),
               ),
             ),
             onPressed: () {
@@ -55,7 +55,7 @@ class _ChatScreenState extends State<ChatScreen> with AutomaticKeepAliveClientMi
         bottom: PreferredSize(
             preferredSize: const Size.fromHeight(4.0),
             child: Container(
-              color: const Color.fromARGB(255, 200, 221, 150),
+              color: const Color(0xFF92DE8B),
               height: 6.0,
             )),
       ),

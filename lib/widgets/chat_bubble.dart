@@ -12,7 +12,7 @@ class ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color bubbleColor = (type == 'sender') ? Color(0xFF6E9E57) : const Color.fromARGB(255, 226, 226, 226);
+    final Color bubbleColor = (type == 'sender') ? Color(0xFF0AB68B) : const Color.fromARGB(255, 226, 226, 226);
     final Color textColor = (type == 'sender') ? Colors.white : Colors.black;
     return Container(
         padding: const EdgeInsets.all(12),

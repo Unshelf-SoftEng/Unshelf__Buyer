@@ -19,7 +19,7 @@ class OrderPlacedView extends StatelessWidget {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.green.shade900,
+                color: const Color(0xFF0AB68B),
               ),
             ),
             const SizedBox(height: 8),
@@ -43,7 +43,7 @@ class OrderPlacedView extends StatelessWidget {
                     text: 'Order Tracking',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Colors.green.shade900,
+                      color: const Color(0xFF0AB68B),
                     ),
                   ),
                   const TextSpan(text: ' page in Profile'),
@@ -53,7 +53,7 @@ class OrderPlacedView extends StatelessWidget {
             const SizedBox(height: 24),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green.shade700,
+                backgroundColor: const Color(0xFF0AB68B),
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),

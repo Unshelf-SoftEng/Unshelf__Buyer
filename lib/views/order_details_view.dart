@@ -46,7 +46,7 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF6E9E57),
+        backgroundColor: const Color(0xFF0AB68B),
         elevation: 0,
         toolbarHeight: 65,
         title: const Text(
@@ -115,7 +115,7 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.green,
+                            color: const Color(0xFF0AB68B),
                             border: Border.all(
                               color: Colors.black, // Border color
                               width: 1.0, // Border width
@@ -136,7 +136,7 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: widget.orderDetails['isPaid'] ? Colors.green : Colors.red,
+                            color: widget.orderDetails['isPaid'] ? const Color(0xFF0AB68B) : Colors.red,
                             border: Border.all(
                               color: Colors.black, // Border color
                               width: 1.0, // Border width

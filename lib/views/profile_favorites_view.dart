@@ -133,7 +133,7 @@ class FavoritesView extends StatelessWidget {
                   ),
                 ), // Heart button (Remove from favorites)
                 IconButton(
-                  icon: const Icon(Icons.favorite, color: Colors.green),
+                  icon: const Icon(Icons.favorite, color: const Color(0xFF0AB68B)),
                   onPressed: () {
                     _removeFromFavorites(productId);
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -164,7 +164,7 @@ class FavoritesView extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF6E9E57),
+        backgroundColor: const Color(0xFF0AB68B),
         elevation: 0,
         toolbarHeight: 65,
         title: const Text(
@@ -177,7 +177,7 @@ class FavoritesView extends StatelessWidget {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(4.0),
           child: Container(
-            color: const Color.fromARGB(255, 200, 221, 150),
+            color: const Color(0xFF92DE8B),
             height: 6.0,
           ),
         ),

@@ -28,7 +28,7 @@ class _SearchViewState extends State<SearchView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF6E9E57),
+        backgroundColor: const Color(0xFF0AB68B),
         elevation: 0,
         toolbarHeight: 80,
         title: Container(
@@ -65,7 +65,7 @@ class _SearchViewState extends State<SearchView> {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(4.0),
           child: Container(
-            color: const Color.fromARGB(255, 200, 221, 150),
+            color: const Color(0xFF92DE8B),
             height: 4.0,
           ),
         ),

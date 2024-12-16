@@ -7,7 +7,7 @@ Future<DateTime?> showDateTimePicker({
   DateTime? lastDate,
 }) async {
   initialDate ??= DateTime.now();
-  firstDate ??= initialDate.subtract(const Duration(days: 365 * 100));
+  firstDate ??= DateTime.now();
   lastDate ??= firstDate.add(const Duration(days: 365 * 200));
 
   final DateTime? selectedDate = await showDatePicker(
@@ -23,7 +23,7 @@ Future<DateTime?> showDateTimePicker({
 
   final TimeOfDay? selectedTime = await showTimePicker(
     context: context,
-    initialTime: TimeOfDay.fromDateTime(initialDate),
+    initialTime: TimeOfDay.now(),
   );
 
   return selectedTime == null

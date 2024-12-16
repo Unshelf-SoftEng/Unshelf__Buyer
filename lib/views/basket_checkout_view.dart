@@ -134,7 +134,7 @@ class _CheckoutViewState extends State<CheckoutView> {
           bool paymentSuccess = await orderViewModel.processOrderAndPayment(
               user.uid, widget.basketItems, widget.sellerId!, orderId, totalAmount, selectedPickupDateTime!, usePoints, points);
           if (paymentSuccess) {
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (_) => OrderPlacedView()),
             );
@@ -155,6 +155,7 @@ class _CheckoutViewState extends State<CheckoutView> {
                 .toList(),
             'sellerId': widget.sellerId,
             'status': "Pending",
+            'subTotal': totalRegular,
             'totalPrice': totalAmount,
             'pickupTime': Timestamp.fromDate(selectedPickupDateTime!),
             'pointsDiscount': usePoints ? points : 0
@@ -175,7 +176,7 @@ class _CheckoutViewState extends State<CheckoutView> {
               // Update the stock for the batch
               int newStock = currentStock - quantity;
               if (newStock < 0) {
-                throw Exception('Insufficient stock for batch $batchId');
+                throw Exception('Insufficient stockkk for batch $batchId');
               }
 
               await FirebaseFirestore.instance.collection('batches').doc(batchId).update({'stock': newStock});
@@ -201,7 +202,7 @@ class _CheckoutViewState extends State<CheckoutView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF6E9E57),
+        backgroundColor: const Color(0xFF0AB68B),
         elevation: 0,
         toolbarHeight: 65,
         title: const Text("Checkout", style: TextStyle(color: Colors.white, fontSize: 25.0)),
@@ -209,13 +210,19 @@ class _CheckoutViewState extends State<CheckoutView> {
           IconButton(
             icon: const CircleAvatar(
               backgroundColor: Colors.white,
-              child: Icon(Icons.message, color: Color(0xFF6E9E57)),
+              child: Icon(Icons.message, color: Color(0xFF0AB68B)),
             ),
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen()));
             },
           ),
         ],
+        bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(4.0),
+            child: Container(
+              color: const Color(0xFF92DE8B),
+              height: 6.0,
+            )),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,10 +246,10 @@ class _CheckoutViewState extends State<CheckoutView> {
                 OutlinedButton(
                   onPressed: _selectPickupDateTime,
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFF6E9E57)),
+                    side: const BorderSide(color: Color(0xFF0AB68B)),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
                   ),
-                  child: const Text('Pickup Time', style: TextStyle(color: Color(0xFF6E9E57))),
+                  child: const Text('Pickup Time', style: TextStyle(color: Color(0xFF0AB68B))),
                 ),
                 const SizedBox(width: 10),
                 if (selectedPickupDateTime != null)
@@ -307,7 +314,7 @@ class _CheckoutViewState extends State<CheckoutView> {
                         updateTotal();
                       },
                       value: usePoints,
-                      activeColor: Colors.green),
+                      activeColor: const Color(0xFF0AB68B)),
                   const SizedBox(width: 10),
                   Text(
                     "Use points: -${points.toString()}.00 PHP",
@@ -327,7 +334,7 @@ class _CheckoutViewState extends State<CheckoutView> {
             ElevatedButton(
               onPressed: selectedPickupDateTime == null ? null : _confirmOrder,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6A994E),
+                backgroundColor: const Color(0xFF0AB68B),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               ),
               child: const Padding(
@@ -347,13 +354,13 @@ class _CheckoutViewState extends State<CheckoutView> {
       child: OutlinedButton(
         onPressed: () => selectPaymentMethod(method),
         style: OutlinedButton.styleFrom(
-          backgroundColor: isSelected ? const Color(0xFF6E9E57) : Colors.transparent,
-          side: const BorderSide(color: Color(0xFF6E9E57)),
+          backgroundColor: isSelected ? const Color(0xFF0AB68B) : Colors.transparent,
+          side: const BorderSide(color: Color(0xFF0AB68B)),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
         ),
         child: Text(
           method,
-          style: TextStyle(color: isSelected ? Colors.white : const Color(0xFF6E9E57)),
+          style: TextStyle(color: isSelected ? Colors.white : const Color(0xFF0AB68B)),
         ),
       ),
     );
