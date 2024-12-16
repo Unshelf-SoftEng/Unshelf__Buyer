@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:unshelf_buyer/views/chat_screen.dart';
@@ -91,15 +92,24 @@ class _CheckoutViewState extends State<CheckoutView> {
   Future<void> generateOrderId() async {
     // Get current date in YYYYMMDD format
     String currentDate = DateFormat('yyyyMMdd').format(DateTime.now());
+    DateTime now = DateTime.now();
+    DateTime start = now.subtract(Duration(hours: now.hour, minutes: now.minute, seconds: now.second));
+    DateTime end = start.add(const Duration(days: 1));
+
+    debugPrint("Start $start End $end");
 
     // Reference to the Firebase collection where orders are stored
     CollectionReference ordersRef = FirebaseFirestore.instance.collection('orders');
 
     // Query to count orders with the current date
-    QuerySnapshot querySnapshot = await ordersRef.where('orderDate', isEqualTo: currentDate).get();
+    QuerySnapshot querySnapshot = await ordersRef
+        .where('createdAt', isGreaterThan: Timestamp.fromDate(start))
+        .where('createdAt', isLessThan: Timestamp.fromDate(end))
+        .get();
 
     // Get the number of orders already made today
     int orderCount = querySnapshot.size;
+    debugPrint("what? $orderCount");
 
     // Generate the next order number by incrementing the order count
     String nextOrderNumber = (orderCount + 1).toString().padLeft(3, '0');

@@ -6,6 +6,7 @@ import 'package:unshelf_buyer/views/home_view.dart';
 import 'package:unshelf_buyer/views/map_view.dart';
 import 'package:unshelf_buyer/views/order_details_view.dart';
 import 'package:unshelf_buyer/views/profile_view.dart';
+import 'package:unshelf_buyer/views/review_view.dart'; // Assuming ReviewPage exists
 
 class OrderTrackingView extends StatelessWidget {
   const OrderTrackingView({Key? key}) : super(key: key);
@@ -44,11 +45,10 @@ class OrderTrackingView extends StatelessWidget {
         }
       }
 
-      final int total = orderItemsDetails.fold<num>(0, (sum, item) => sum + item['price'] * item['quantity']).toInt();
-
       return {
         'storeName': storeData?['store_name'] ?? '',
         'storeImageUrl': storeData?['store_image_url'] ?? '',
+        'storeId': orderData['sellerId'],
         'docId': orderId,
         'orderId': orderData['orderId'],
         'orderItems': orderItemsDetails,
@@ -60,6 +60,7 @@ class OrderTrackingView extends StatelessWidget {
         'totalPrice': orderData['totalPrice'],
         'pickupTime': orderData['pickupTime'].toDate(),
         'pickupCode': orderData['pickupCode'] ?? '...',
+        'isReviewed': orderData['isReviewed'].toString() ?? 'false',
       };
     }
     return {};
@@ -92,7 +93,7 @@ class OrderTrackingView extends StatelessWidget {
         stream: FirebaseFirestore.instance
             .collection('orders')
             .where('buyerId', isEqualTo: _auth.currentUser!.uid)
-            .where('status', isNotEqualTo: 'Completed')
+            .orderBy('createdAt', descending: true)
             .snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) {
@@ -118,12 +119,29 @@ class OrderTrackingView extends StatelessWidget {
                   final storeImageUrl = orderDetails['storeImageUrl'];
                   final isPaid = orderDetails['isPaid'];
                   final status = orderDetails['status'];
+                  final isReviewed = orderDetails['isReviewed'];
                   final total = orderDetails['totalPrice'];
                   final pickupTime = orderDetails['pickupTime'];
                   final pickupCode = orderDetails['pickupCode'];
-                  final orderItems = orderDetails['orderItems'];
                   final createdAt = orderDetails['createdAt'];
-                  debugPrint("items: $orderItems");
+
+                  debugPrint("? $isReviewed");
+                  // Determine color based on order status
+                  Color statusColor;
+                  switch (status) {
+                    case 'Pending':
+                      statusColor = Colors.orange;
+                      break;
+                    case 'Cancelled':
+                      statusColor = Colors.red;
+                      break;
+                    case 'Completed':
+                      statusColor = Colors.green;
+                      break;
+                    default:
+                      statusColor = Colors.grey;
+                  }
+
                   return GestureDetector(
                     onTap: () {
                       Navigator.push(
@@ -136,71 +154,142 @@ class OrderTrackingView extends StatelessWidget {
                     child: Container(
                       color: isDarkBackground ? Colors.grey[200] : Colors.grey[100],
                       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Middle Section: Order Info
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                          // Main Order Info
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Order ID: ${orderDetails['orderId']}',
+                                      style: const TextStyle(
+                                        fontSize: 14.0,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4.0),
+                                    Text(
+                                      createdAt.toString().split(' ')[0],
+                                      style: TextStyle(
+                                        fontSize: 12.0,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4.0),
+                                    Text(
+                                      'Status: $status',
+                                      style: TextStyle(
+                                        fontSize: 12.0,
+                                        color: statusColor, // Use color based on status
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   Text(
-                                    'Order ID: $orderId',
+                                    '₱ ${total.toStringAsFixed(2)}',
                                     style: const TextStyle(
-                                      fontSize: 14.0,
+                                      fontSize: 18.0,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
+                                      color: Color(0xFF0AB68B),
                                     ),
                                   ),
-                                  const SizedBox(height: 4.0),
-                                  Text(
-                                    createdAt.toString().split(' ')[0],
-                                    style: TextStyle(
-                                      fontSize: 12.0,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4.0),
-                                  Text(
-                                    'Status: $status',
-                                    style: TextStyle(
-                                      fontSize: 12.0,
-                                      color: Colors.grey[600],
-                                    ),
+                                  const SizedBox(height: 8.0),
+                                  Row(
+                                    children: [
+                                      // Show Review Button for Completed Orders
+                                      if (status == 'Completed')
+                                        if (isReviewed == 'true')
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 12.0),
+                                            decoration: BoxDecoration(
+                                              color: const Color.fromARGB(255, 138, 255, 191),
+                                              borderRadius: BorderRadius.circular(12.0),
+                                            ),
+                                            child: const Text(
+                                              'Reviewed',
+                                              style: TextStyle(
+                                                fontSize: 12.0,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                          )
+                                        else
+                                          GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => ReviewPage(
+                                                    orderDocId: orderId,
+                                                    orderId: orderDetails['orderId'],
+                                                    storeId: orderDetails['storeId'], // Assuming storeId is available
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 12.0),
+                                              decoration: BoxDecoration(
+                                                color: const Color.fromARGB(255, 255, 255, 138),
+                                                borderRadius: BorderRadius.circular(12.0),
+                                              ),
+                                              child: const Text(
+                                                '+ Review',
+                                                style: TextStyle(
+                                                  fontSize: 12.0,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                      const SizedBox(
+                                        width: 5,
+                                      ),
+                                      // ElevatedButton(
+                                      //   onPressed: () {
+                                      //     Navigator.push(
+                                      //       context,
+                                      //       MaterialPageRoute(
+                                      //         builder: (context) => ReviewPage(
+                                      //           orderId: orderId,
+                                      //           storeId: orderDetails['sellerId'], // Assuming storeId is available
+                                      //         ),
+                                      //       ),
+                                      //     );
+                                      //   },
+                                      //   style: ElevatedButton.styleFrom(
+                                      //     fixedSize: Size(100, 60),
+                                      //     backgroundColor: const Color.fromARGB(255, 233, 255, 234),
+                                      //   ),
+                                      //   child: const Text('+ Review'),
+                                      // ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 12.0),
+                                        decoration: BoxDecoration(
+                                          color: isPaid ? const Color(0xFF0AB68B) : Colors.red,
+                                          borderRadius: BorderRadius.circular(12.0),
+                                        ),
+                                        child: Text(
+                                          isPaid ? 'Paid' : 'Unpaid',
+                                          style: const TextStyle(
+                                            fontSize: 12.0,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
-                              ),
-                            ),
-                          ),
-
-                          // Right Section: Price and Payment Status
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                '₱ ${total.toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  fontSize: 18.0,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF0AB68B),
-                                ),
-                              ),
-                              const SizedBox(height: 8.0),
-                              Container(
-                                padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 12.0),
-                                decoration: BoxDecoration(
-                                  color: isPaid ? const Color(0xFF0AB68B) : Colors.red,
-                                  borderRadius: BorderRadius.circular(12.0),
-                                ),
-                                child: Text(
-                                  isPaid ? 'Paid' : 'Unpaid',
-                                  style: const TextStyle(
-                                    fontSize: 12.0,
-                                    color: Colors.white,
-                                  ),
-                                ),
                               ),
                             ],
                           ),
