@@ -216,7 +216,13 @@ class _HomeViewState extends State<HomeView> {
           ),
         ),
         CarouselSlider(
-          options: CarouselOptions(height: 200.0, padEnds: true, viewportFraction: 0.4),
+          options: CarouselOptions(
+            height: 200.0,
+            padEnds: true,
+            viewportFraction: 0.4,
+            enableInfiniteScroll: true,
+            initialPage: 1,
+          ),
           items: products.map((product) {
             final data = product.data() as Map<String, dynamic>;
             final productId = product.id;
@@ -359,7 +365,13 @@ class _HomeViewState extends State<HomeView> {
               ),
             ),
             CarouselSlider(
-              options: CarouselOptions(height: 200.0, viewportFraction: 0.4),
+              options: CarouselOptions(
+                height: 200.0,
+                padEnds: true,
+                viewportFraction: 0.4,
+                enableInfiniteScroll: true,
+                initialPage: 1,
+              ),
               items: bundles.map((bundle) {
                 final data = bundle.data() as Map<String, dynamic>;
                 final bundleId = bundle.id;

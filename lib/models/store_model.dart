@@ -48,9 +48,9 @@ class StoreModel {
       // ),
       storeLongitude: (storeData['longitude'] as num?)!.toDouble(),
       storeLatitude: (storeData['latitude'] as num?)!.toDouble(),
-      storeImageUrl: storeData['store_image_url'],
-      storeRating: 0.0,
-      storeFollowers: storeData['follower_count'] != null ? storeData['follower_count'] : 0,
+      storeImageUrl: storeData['store_image_url'] ?? storeData['storeImageUrl'] ?? '',
+      storeRating: storeData['rating'] != null ? storeData['rating'].toDouble() : 0.0,
+      storeFollowers: storeData['follower_count'] ?? 0,
     );
   }
 }

@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:unshelf_buyer/views/chat_screen.dart';
 import 'package:unshelf_buyer/views/basket_checkout_view.dart';
 import 'package:unshelf_buyer/views/store_view.dart';
 
@@ -60,24 +59,70 @@ class _BasketViewState extends State<BasketView> {
       // Fetch all batch details in a single query
       final batchSnapshots =
           await FirebaseFirestore.instance.collection('batches').where(FieldPath.documentId, whereIn: batchIds).get();
+      // Fetch all bundle details in a single query
+      final bundleSnapshotsAll =
+          await FirebaseFirestore.instance.collection('bundles').where(FieldPath.documentId, whereIn: batchIds).get();
 
+      // Fetch all product, seller, and bundle Ids
       final productIds = batchSnapshots.docs.map((doc) => doc['productId']).toSet();
-      final sellerIds = batchSnapshots.docs.map((doc) => doc['sellerId']).toSet();
+      Set<dynamic> sellerIds = batchSnapshots.docs.map((doc) => doc['sellerId']).toSet();
+      sellerIds.addAll(bundleSnapshotsAll.docs.map((doc) => doc['sellerId']).toSet());
 
-      // Fetch all product and store details concurrently
+      // Fetch all product, store, and bundle details concurrently
       final productSnapshotsFuture =
           FirebaseFirestore.instance.collection('products').where(FieldPath.documentId, whereIn: productIds.toList()).get();
-
       final storeSnapshotsFuture =
           FirebaseFirestore.instance.collection('stores').where(FieldPath.documentId, whereIn: sellerIds.toList()).get();
 
+      Map<String, List<Map<String, dynamic>>> groupedItems = {};
+
       final productSnapshots = await productSnapshotsFuture;
       final storeSnapshots = await storeSnapshotsFuture;
-
       final products = {for (var doc in productSnapshots.docs) doc.id: doc.data()};
       final stores = {for (var doc in storeSnapshots.docs) doc.id: doc.data()};
 
-      Map<String, List<Map<String, dynamic>>> groupedItems = {};
+      final bundleIds = bundleSnapshotsAll.docs.map((doc) => doc.id).toSet();
+
+      if (bundleIds.isNotEmpty) {
+        final bundleSnapshotsFuture =
+            FirebaseFirestore.instance.collection('bundles').where(FieldPath.documentId, whereIn: bundleIds.toList()).get();
+        final bundleSnapshots = await bundleSnapshotsFuture;
+
+        final bundles = {for (var doc in bundleSnapshots.docs) doc.id: doc.data()};
+        for (var bundleDoc in bundleSnapshots.docs) {
+          final bundleData = bundleDoc.data();
+          debugPrint("bundle ${bundleData.toString()}");
+          final bundleId = bundleDoc.id;
+          final quantity = quantities[bundleId] ?? 0;
+
+          const productId = null;
+          final sellerId = bundleData['sellerId'];
+
+          // final productData = products[productId];
+          final storeData = stores[sellerId];
+
+          if (storeData != null) {
+            debugPrint("here..");
+            if (!groupedItems.containsKey(sellerId)) {
+              groupedItems[sellerId] = [];
+            }
+
+            groupedItems[sellerId]!.add({
+              'batchId': bundleId,
+              'quantity': quantity,
+              'batchPrice': bundleData['price'],
+              'batchDiscount': bundleData['discount'],
+              'batchStock': bundleData['stock'],
+              'productName': bundleData['name'],
+              'productMainImageUrl': bundleData['mainImageUrl'],
+              'productQuantifier': 'unit',
+              'storeName': storeData['store_name'],
+              'storeImageUrl': storeData['store_image_url'],
+              'isBundle': true,
+            });
+          }
+        }
+      }
 
       for (var batchDoc in batchSnapshots.docs) {
         final batchData = batchDoc.data();
@@ -106,6 +151,7 @@ class _BasketViewState extends State<BasketView> {
             'productQuantifier': productData['quantifier'],
             'storeName': storeData['store_name'],
             'storeImageUrl': storeData['store_image_url'],
+            'isBundle': false,
           });
         }
       }
@@ -309,6 +355,11 @@ class _BasketViewState extends State<BasketView> {
                         ),
                       );
                     }).toList(),
+                    Divider(
+                      thickness: 0.2,
+                      height: 1,
+                      color: Colors.grey[600],
+                    ),
                   ],
                 );
               }).toList(),
@@ -341,6 +392,7 @@ class _BasketViewState extends State<BasketView> {
                           'batchPrice':
                               (item['batchPrice'] * (1 - item['batchDiscount'] / 100) as num).toDouble(), // Explicit double cast
                           'quantity': item['quantity'],
+                          'isBundle': item['isBundle'],
                         };
                       }).toList();
                       Navigator.pushReplacement(

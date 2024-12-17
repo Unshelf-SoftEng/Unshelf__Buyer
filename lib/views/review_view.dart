@@ -2,18 +2,82 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class ReviewPage extends StatelessWidget {
+class ReviewPage extends StatefulWidget {
   final String orderId;
   final String storeId;
   final String orderDocId;
 
-  const ReviewPage({Key? key, required this.orderId, required this.storeId, required this.orderDocId}) : super(key: key);
+  const ReviewPage({
+    Key? key,
+    required this.orderId,
+    required this.storeId,
+    required this.orderDocId,
+  }) : super(key: key);
+
+  @override
+  _ReviewPageState createState() => _ReviewPageState();
+}
+
+class _ReviewPageState extends State<ReviewPage> {
+  final TextEditingController _descriptionController = TextEditingController();
+  final ValueNotifier<int> _rating = ValueNotifier<int>(0);
+
+  Future<double> getStoreRating() async {
+    // Fetch all reviews for the store
+    QuerySnapshot reviewSnapshot =
+        await FirebaseFirestore.instance.collection('stores').doc(widget.storeId).collection('reviews').get();
+
+    // Check if there are any reviews
+    if (reviewSnapshot.docs.isEmpty) {
+      return 0.0; // Return 0.0 if there are no reviews
+    }
+
+    // Calculate the sum of all ratings
+    int totalRating = 0;
+    for (var doc in reviewSnapshot.docs) {
+      totalRating += doc['rating'] as int; // Assuming the rating field is an int
+    }
+
+    // Calculate the average rating
+    double averageRating = totalRating / reviewSnapshot.docs.length;
+
+    // Round the result to 2 decimal places
+    return double.parse(averageRating.toStringAsFixed(2));
+  }
+
+  Future<void> submitReview() async {
+    final reviewData = {
+      'orderId': widget.orderId,
+      'buyerId': FirebaseAuth.instance.currentUser!.uid,
+      'storeId': widget.storeId,
+      'rating': _rating.value,
+      'description': _descriptionController.text,
+    };
+
+    // Mark the order as reviewed
+    await FirebaseFirestore.instance.collection('orders').doc(widget.orderDocId).update({'isReviewed': true});
+
+    // Save the review to Firestore
+    await FirebaseFirestore.instance
+        .collection('stores')
+        .doc(widget.storeId)
+        .collection('reviews')
+        .doc(widget.orderDocId)
+        .set(reviewData);
+
+    // Calculate the new store rating
+    double newRating = await getStoreRating();
+
+    // Update the store's rating in the store document
+    await FirebaseFirestore.instance.collection('stores').doc(widget.storeId).update({'rating': newRating});
+
+    // Show a success message and pop the screen
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Review submitted successfully')));
+    Navigator.pop(context);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController _descriptionController = TextEditingController();
-    final _rating = ValueNotifier<int>(0);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Leave a Review'),
@@ -50,25 +114,7 @@ class ReviewPage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () async {
-                final reviewData = {
-                  'orderId': orderId,
-                  'buyerId': FirebaseAuth.instance.currentUser!.uid,
-                  'storeId': storeId,
-                  'rating': _rating.value,
-                  'description': _descriptionController.text,
-                };
-
-                await FirebaseFirestore.instance.collection('orders').doc(orderDocId).update({'isReviewed': true});
-                await FirebaseFirestore.instance
-                    .collection('stores')
-                    .doc(storeId)
-                    .collection('reviews')
-                    .doc(orderDocId)
-                    .set(reviewData);
-
-                Navigator.pop(context);
-              },
+              onPressed: submitReview,
               child: const Text('Submit Review'),
             ),
           ],

@@ -190,6 +190,7 @@ class OrderViewModel extends ChangeNotifier {
                   'batchId': item['batchId'],
                   'quantity': item['quantity'],
                   'price': item['batchPrice'],
+                  'isBundle': item['isBundle'],
                 })
             .toList(),
         'sellerId': sellerId,
@@ -211,20 +212,31 @@ class OrderViewModel extends ChangeNotifier {
         String batchId = item['batchId'];
         int quantity = item['quantity'];
 
-        // Fetch the batch document
+        // Fetch the batch document if batch
         DocumentSnapshot batchSnapshot = await FirebaseFirestore.instance.collection('batches').doc(batchId).get();
 
         if (batchSnapshot.exists) {
           Map<String, dynamic>? batchData = batchSnapshot.data() as Map<String, dynamic>?;
           int currentStock = batchData?['stock'] ?? 0;
-
           // Update the stock for the batch
           int newStock = currentStock - quantity;
           if (newStock < 0) {
-            throw Exception('Insufficient stock for batch $batchId');
+            throw Exception('Insufficient stokk for batch $batchId');
           }
-
           await FirebaseFirestore.instance.collection('batches').doc(batchId).update({'stock': newStock});
+        } else {
+          debugPrint("IT'S A BUNDLE!!!");
+          DocumentSnapshot bundleSnapshot = await FirebaseFirestore.instance.collection('bundles').doc(batchId).get();
+          if (bundleSnapshot.exists) {
+            Map<String, dynamic>? bundleData = bundleSnapshot.data() as Map<String, dynamic>?;
+            int currentStock = bundleData?['stock'] ?? 0;
+            // Update the stock for the batch
+            int newStock = currentStock - quantity;
+            if (newStock < 0) {
+              throw Exception('Insufficient stock for bundle $batchId');
+            }
+            await FirebaseFirestore.instance.collection('bundles').doc(batchId).update({'stock': newStock});
+          }
         }
 
         // Remove the item from the user's cart

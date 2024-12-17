@@ -102,7 +102,9 @@ class _BundleViewState extends State<BundleView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(bundleData['name'], style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8.0),
+                      Divider(color: Colors.grey[200]),
+
+                      const SizedBox(height: 5.0),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -113,8 +115,9 @@ class _BundleViewState extends State<BundleView> {
                           Text('Stock: ${bundleData['stock']}', style: TextStyle(fontSize: 20, color: Colors.grey[500])),
                         ],
                       ),
-                      const SizedBox(height: 8.0),
-                      const Divider(),
+                      const SizedBox(height: 5.0),
+                      Divider(color: Colors.grey[200]),
+                      const SizedBox(height: 5.0),
                       GestureDetector(
                         onTap: () {
                           if (sellerData != null) {
@@ -125,50 +128,52 @@ class _BundleViewState extends State<BundleView> {
                           }
                         },
                         child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            CircleAvatar(
-                              backgroundImage:
-                                  sellerData != null ? CachedNetworkImageProvider(sellerData!['store_image_url']) : null,
-                              radius: 20,
+                            Row(
+                              children: [
+                                CircleAvatar(
+                                  backgroundImage:
+                                      sellerData != null ? CachedNetworkImageProvider(sellerData!['store_image_url']) : null,
+                                  radius: 20,
+                                ),
+                                const SizedBox(width: 15.0),
+                                Text(
+                                  sellerData != null ? sellerData!['store_name'] : 'Loading...',
+                                  style: const TextStyle(fontSize: 15),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 8.0),
-                            Text(
-                              sellerData != null ? sellerData!['store_name'] : 'Loading...',
-                              style: const TextStyle(fontSize: 16),
+                            const SizedBox(width: 20.0),
+                            Divider(color: Colors.grey[200]),
+                            Container(
+                              padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 12.0),
+                              decoration: BoxDecoration(
+                                color: const Color.fromARGB(255, 255, 255, 138),
+                                borderRadius: BorderRadius.circular(12.0),
+                              ),
+                              child: const Text(
+                                'Visit >',
+                                style: TextStyle(
+                                  fontSize: 12.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color.fromARGB(255, 250, 134, 0),
+                                ),
+                              ),
                             ),
+                            Divider(color: Colors.grey[200]),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16.0),
-                      const Text('Description', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8.0),
+                      Divider(color: Colors.grey[200]),
+                      const SizedBox(height: 10.0),
+                      const Text('Description', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 10.0),
                       Text(bundleData['description'], style: const TextStyle(fontSize: 16)),
-                      const Divider(),
-
-                      // // Quantity Selector
-                      // Row(
-                      //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      //   children: [
-                      //     const Text('Quantity:', style: TextStyle(fontSize: 18)),
-                      //     Row(
-                      //       children: [
-                      //         IconButton(
-                      //           icon: const Icon(Icons.remove),
-                      //           onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
-                      //         ),
-                      //         Text(_quantity.toString(), style: const TextStyle(fontSize: 18)),
-                      //         IconButton(
-                      //           icon: const Icon(Icons.add),
-                      //           onPressed: () => setState(() => _quantity++),
-                      //         ),
-                      //       ],
-                      //     ),
-                      //   ],
-                      // ),
-                      // const Divider(),
-
+                      const SizedBox(height: 10.0),
+                      Divider(color: Colors.grey[200]),
                       // Products in Bundle
-                      const Text('Products in this bundle', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      const Text('Products in this bundle', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8.0),
                     ],
                   ),
@@ -195,13 +200,16 @@ class _BundleViewState extends State<BundleView> {
                   return SliverToBoxAdapter(
                     child: SizedBox(
                       height: 200.0,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: batches.length,
-                        itemBuilder: (context, index) {
-                          var batch = batches[index].data() as Map<String, dynamic>;
-                          return _buildProductCard(batch['productId'], batch['price']);
-                        },
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 20.0),
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: batches.length,
+                          itemBuilder: (context, index) {
+                            var batch = batches[index].data() as Map<String, dynamic>;
+                            return _buildProductCard(batch['productId'], batch['price']);
+                          },
+                        ),
                       ),
                     ),
                   );
@@ -282,14 +290,14 @@ class _BundleViewState extends State<BundleView> {
                   placeholder: (context, url) => const CircularProgressIndicator(),
                   errorWidget: (context, url, error) => const Icon(Icons.error),
                   width: 120.0,
-                  height: 120.0,
+                  height: 150.0,
                   fit: BoxFit.cover,
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text(product['name'] ?? 'No Name', style: const TextStyle(fontSize: 14)),
+                  child: Text(product['name'] ?? 'Unnamed', style: const TextStyle(fontSize: 15)),
                 ),
-                Text('P $price', style: const TextStyle(fontSize: 12, color: Color(0xFF0AB68B))),
+                // Text('P $price', style: const TextStyle(fontSize: 12, color: Color(0xFF0AB68B))),
               ],
             ),
           ),

@@ -74,29 +74,6 @@ class _SearchViewState extends State<SearchView> {
     );
   }
 
-  Widget _buildProductCarousel(List<DocumentSnapshot> products) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 20.0),
-          child: Text(
-            "Hot Products!",
-            style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
-          ),
-        ),
-        CarouselSlider(
-          options: CarouselOptions(height: 200.0, padEnds: true, viewportFraction: 0.4),
-          items: products.map((product) {
-            final data = product.data() as Map<String, dynamic>;
-            final productId = product.id;
-            return _buildProductCard(data, productId, false, context);
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
   Widget _buildProductCard(Map<String, dynamic> data, String productId, bool isBundle, BuildContext context) {
     return Column(
       children: [
@@ -239,31 +216,6 @@ class _SearchViewState extends State<SearchView> {
       });
     }
   }
-
-  // Future<void> _performSearch(String query) async {
-  //   if (query.isNotEmpty) {
-  //     var batchesSnapshot = await _firestore.collection('batches').where('isListed', isEqualTo: true).get();
-  //     List<String> productIds = batchesSnapshot.docs.map((doc) => doc['productId'] as String).toSet().toList();
-
-  //     // Fetch all products that match the search query
-  //     final searchSnapshot = await _firestore
-  //         .collection('products')
-  //         .where('name', isGreaterThanOrEqualTo: query)
-  //         .where('name', isLessThanOrEqualTo: '$query\uf8ff')
-  //         .get();
-
-  //     // Only show products with batches
-  //     final filteredResults = searchSnapshot.docs
-  //         .where(
-  //           (doc) => productIds.contains(doc.id),
-  //         )
-  //         .toList();
-
-  //     setState(() {
-  //       _searchResults = filteredResults;
-  //     });
-  //   }
-  // }
 
   Widget _buildSearchResults() {
     if (_searchResults.isEmpty) {

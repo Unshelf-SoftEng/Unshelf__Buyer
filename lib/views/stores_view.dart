@@ -8,29 +8,18 @@ import 'package:unshelf_buyer/widgets/custom_navigation_bar.dart';
 class StoresView extends StatelessWidget {
   const StoresView({super.key});
 
-  Future<void> _removeFromFollowing(String storeId) async {
-    final userId = FirebaseAuth.instance.currentUser!.uid;
-    final followingRef = FirebaseFirestore.instance.collection('users').doc(userId).collection('following').doc(storeId);
-
-    await followingRef.delete();
-  }
-
   Widget _buildStoreCard(Map<String, dynamic> data, String storeId, BuildContext context) {
     return Column(
       children: [
         const SizedBox(
-          height: 20,
+          height: 10,
         ),
         GestureDetector(
           onTap: () {
-            Navigator.pushReplacement(
+            Navigator.push(
               context,
-              PageRouteBuilder(
-                pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
-                  return StoreView(storeId: storeId);
-                },
-                transitionDuration: Duration.zero,
-                reverseTransitionDuration: Duration.zero,
+              MaterialPageRoute(
+                builder: (context) => StoreView(storeId: storeId),
               ),
             );
           },
@@ -41,8 +30,8 @@ class StoresView extends StatelessWidget {
               children: [
                 // Store Image
                 Container(
-                  width: 120,
-                  height: 100,
+                  width: 100,
+                  height: 80,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 5, offset: const Offset(0, 3))],
@@ -50,7 +39,7 @@ class StoresView extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: CachedNetworkImage(
-                      imageUrl: data['store_image_url'],
+                      imageUrl: data['store_image_url'] ?? '',
                       fit: BoxFit.cover,
                       placeholder: (context, url) => const CircularProgressIndicator(),
                       errorWidget: (context, url, error) => const Icon(Icons.error),
@@ -65,28 +54,28 @@ class StoresView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        data['store_name'], // Store Name
+                        data['store_name'] ?? '', // Store Name
                         style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold, color: Colors.black),
                       ),
                       const SizedBox(height: 4),
                     ],
                   ),
                 ), // Heart button (Remove from following)
-                IconButton(
-                  icon: const Icon(Icons.favorite, color: const Color(0xFF0AB68B)),
-                  onPressed: () {
-                    _removeFromFollowing(storeId);
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text('Successfully removed from following list.'),
-                    ));
-                  },
-                ),
+                // IconButton(
+                //   icon: const Icon(Icons.favorite, color: const Color(0xFF0AB68B)),
+                //   onPressed: () {
+                //     _removeFromFollowing(storeId);
+                //     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                //       content: Text('Successfully removed from following list.'),
+                //     ));
+                //   },
+                // ),
               ],
             ),
           ),
         ),
         const SizedBox(
-          height: 15,
+          height: 10,
         ),
         // Divider between store cards
         Divider(
@@ -101,7 +90,7 @@ class StoresView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userId = FirebaseAuth.instance.currentUser!.uid;
-    final followingRef = FirebaseFirestore.instance.collection('users').doc(userId).collection('following');
+    final storesRef = FirebaseFirestore.instance.collection('stores');
 
     return Scaffold(
       appBar: AppBar(
@@ -120,7 +109,7 @@ class StoresView extends StatelessWidget {
             )),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: followingRef.snapshots(),
+        stream: storesRef.snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

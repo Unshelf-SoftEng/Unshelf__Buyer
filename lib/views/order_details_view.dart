@@ -1,9 +1,11 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:unshelf_buyer/views/store_view.dart';
 
 class OrderDetailsView extends StatefulWidget {
   final Map<String?, dynamic> orderDetails;
@@ -56,6 +58,12 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
             fontSize: 25.0,
           ),
         ),
+        bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(4.0),
+            child: Container(
+              color: const Color(0xFF92DE8B),
+              height: 6.0,
+            )),
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
@@ -64,6 +72,119 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(
+                height: 10,
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => StoreView(storeId: widget.orderDetails['storeId']),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Store Image
+                      Container(
+                        width: 100,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 5, offset: const Offset(0, 3))],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: CachedNetworkImage(
+                            imageUrl: widget.orderDetails['storeImageUrl'] ?? '',
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => const CircularProgressIndicator(),
+                            errorWidget: (context, url, error) => const Icon(Icons.error),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 30),
+
+                      // Store Details
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.orderDetails['storeName'] ?? 'Unknown', // Store Name
+                              style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold, color: Colors.black),
+                            ),
+                            const SizedBox(height: 4),
+                          ],
+                        ),
+                      ), // Heart button (Remove from following)
+                      // IconButton(
+                      //   icon: const Icon(Icons.favorite, color: const Color(0xFF0AB68B)),
+                      //   onPressed: () {
+                      //     _removeFromFollowing(storeId);
+                      //     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      //       content: Text('Successfully removed from following list.'),
+                      //     ));
+                      //   },
+                      // ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              // Row(
+              //   crossAxisAlignment: CrossAxisAlignment.center,
+              //   children: [
+              //     // Store Image
+              //     Container(
+              //       width: 100,
+              //       height: 80,
+              //       decoration: BoxDecoration(
+              //         borderRadius: BorderRadius.circular(10),
+              //         boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 5, offset: const Offset(0, 3))],
+              //       ),
+              //       child: ClipRRect(
+              //         borderRadius: BorderRadius.circular(10),
+              //         child: CachedNetworkImage(
+              //           imageUrl: widget.orderDetails['storeImageUrl'] ?? '',
+              //           fit: BoxFit.cover,
+              //           placeholder: (context, url) => const CircularProgressIndicator(),
+              //           errorWidget: (context, url, error) => const Icon(Icons.error),
+              //         ),
+              //       ),
+              //     ),
+              //     const SizedBox(width: 30),
+
+              //     // Store Details
+              //     Expanded(
+              //       child: Column(
+              //         crossAxisAlignment: CrossAxisAlignment.start,
+              //         children: [
+              //           Text(
+              //             widget.orderDetails['storeName'] ?? '', // Store Name
+              //             style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold, color: Colors.black),
+              //           ),
+              //           const SizedBox(height: 4),
+              //         ],
+              //       ),
+              //     ), // Heart button (Remove from following)
+              //     // IconButton(
+              //     //   icon: const Icon(Icons.favorite, color: const Color(0xFF0AB68B)),
+              //     //   onPressed: () {
+              //     //     _removeFromFollowing(storeId);
+              //     //     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              //     //       content: Text('Successfully removed from following list.'),
+              //     //     ));
+              //     //   },
+              //     // ),
+              //   ],
+              // ),
               // Order Overview Card
               Container(
                 width: double.infinity,
@@ -171,7 +292,7 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
               ListView.builder(
                 itemCount: widget.orderDetails['orderItems'].length,
                 shrinkWrap: true, // Important for ListView inside scrollable widget
-                physics: NeverScrollableScrollPhysics(), // Disable internal scrolling
+                physics: const NeverScrollableScrollPhysics(), // Disable internal scrolling
                 itemBuilder: (context, index) {
                   return Card(
                     elevation: 2,
