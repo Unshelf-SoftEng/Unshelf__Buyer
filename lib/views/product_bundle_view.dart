@@ -161,7 +161,6 @@ class _BundleViewState extends State<BundleView> {
                                 ),
                               ),
                             ),
-                            Divider(color: Colors.grey[200]),
                           ],
                         ),
                       ),

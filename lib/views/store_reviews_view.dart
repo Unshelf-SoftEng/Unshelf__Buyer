@@ -125,7 +125,7 @@ class _StoreReviewsViewState extends State<StoreReviewsView> {
         elevation: 0,
         toolbarHeight: 65,
         title: const Text(
-          "Stores",
+          "Reviews",
           style: TextStyle(color: Colors.white, fontSize: 25),
         ),
         bottom: PreferredSize(
